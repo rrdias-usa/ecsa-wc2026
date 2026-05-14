@@ -1,8 +1,18 @@
 {
   "version": 2,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma",        "value": "no-cache" },
+        { "key": "Expires",       "value": "0" }
+      ]
+    }
+  ],
   "routes": [
-    { "src": "/admin", "dest": "/ecsa-admin.html" },
+    { "src": "/admin",  "dest": "/ecsa-admin.html"  },
     { "src": "/public", "dest": "/ecsa-public.html" },
-    { "src": "/", "dest": "/index.html" }
+    { "src": "/",       "dest": "/index.html"       }
   ]
 }
