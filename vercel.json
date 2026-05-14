@@ -1,7 +1,8 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/",      "destination": "/ecsa-public.html" },
-    { "source": "/admin", "destination": "/ecsa-admin.html"  }
+  "version": 2,
+  "routes": [
+    { "src": "/admin", "dest": "/ecsa-admin.html" },
+    { "src": "/public", "dest": "/ecsa-public.html" },
+    { "src": "/", "dest": "/index.html" }
   ]
 }
