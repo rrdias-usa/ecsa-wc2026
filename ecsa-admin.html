@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ECSA Coach – World Cup 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -296,6 +296,116 @@ textarea{resize:vertical;min-height:48px}
 .gbar{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
 .toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#000;font-family:"Oswald",sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:8px 15px;border-radius:22px;z-index:9999;transition:transform .3s ease;white-space:nowrap;box-shadow:0 4px 16px rgba(74,222,128,.4)}
 .toast.on{transform:translateX(-50%) translateY(0)}
+
+/* ═══════════ MOBILE OPTIMIZATION ═══════════ */
+html{-webkit-text-size-adjust:100%}
+input,select,textarea{font-size:16px!important}
+@media(max-width:768px){
+  body{font-size:16px}
+  .hdr{padding:10px 13px}
+  .hdr-t{font-size:16px}
+  .hdr-s{font-size:10px}
+  .coach-pill,.admin-pill{font-size:11px;padding:4px 10px}
+  .lo-btn{font-size:11px;padding:5px 11px}
+  .nb{font-size:11px;padding:11px 4px}
+  .nb-ic{font-size:19px;margin-bottom:2px}
+  .catbar{padding:8px 11px;top:57px}
+  .cb{font-size:14px;padding:5px 16px}
+  .cat-info{font-size:11px}
+  .sec-hd{font-size:22px;margin-bottom:14px}
+  .sec-sm{font-size:13px}
+  .sec{padding:14px;padding-bottom:50px}
+  .btn{padding:11px 16px;font-size:13px;min-height:44px}
+  .b-blk{padding:15px;font-size:16px;margin-top:6px}
+  .agrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+  .aname{font-size:13px}
+  .ameta{font-size:11px}
+  .anum{width:24px;height:24px;font-size:12px}
+  .lin-th{font-size:15px;padding:9px 11px}
+  .lin-pl{padding:8px 11px}
+  .pnm{font-size:14px}
+  .pn{font-size:15px;width:22px}
+  .pth{width:28px;height:28px;font-size:15px}
+  .gs-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .gs-card{padding:10px 12px}
+  .gs-lbl{font-size:10px;margin-bottom:4px}
+  .gs-flag{font-size:20px}
+  .gs-name{font-size:13px}
+  .gs-score{font-size:17px}
+  .gs-status{font-size:9px;padding:2px 7px}
+  .gws-hd{padding:12px 14px}
+  .gws-body{padding:13px}
+  .bdg{font-size:10px;padding:2px 7px}
+  .tbox{padding:12px 14px}
+  .tperiod{font-size:11px;margin-bottom:3px}
+  .t-disp{font-size:54px;letter-spacing:3px;margin-bottom:5px}
+  .t-ctls .btn{font-size:13px;padding:11px 14px;min-height:46px}
+  .scoreboard{padding:14px 16px;margin-bottom:12px}
+  .sc-flag{font-size:40px;margin-bottom:3px}
+  .sc-name{font-size:14px;letter-spacing:2px}
+  .sc-num{font-size:60px}
+  .sc-x{font-size:28px}
+  .gcols{grid-template-columns:1fr 1fr;gap:8px}
+  .gcol-hd{font-size:14px;padding:9px 11px}
+  .grow{padding:8px 10px;gap:7px}
+  .gpname{font-size:14px}
+  .gpsub{font-size:11px}
+  .gcnt{font-size:16px;width:18px}
+  .ballbtn{font-size:22px}
+  .ev-pill{font-size:14px;padding:3px 5px}
+  .ep-hd{font-size:10px;margin-bottom:9px}
+  .ep-overall{padding:10px 11px;gap:10px;margin-bottom:10px}
+  .ep-ovr-lbl{font-size:11px}
+  .ep-star-big{font-size:30px}
+  .ep-ovr-val{font-size:20px;width:24px}
+  .ep-skills-toggle{font-size:11px;padding:7px 10px}
+  .skill-row{padding:5px 0}
+  .skill-label{font-size:11px;width:96px}
+  .sk-star{font-size:18px}
+  .ep-save{font-size:11px;padding:7px 16px;min-height:40px}
+  .glog-hd{font-size:11px;padding:8px 12px}
+  .glrow{font-size:14px;padding:9px 12px;gap:8px}
+  .confirm-box{padding:18px}
+  .cb-title{font-size:16px;margin-bottom:9px}
+  .cb-score{font-size:24px;margin-bottom:7px}
+  .cb-note{font-size:12px;margin-bottom:14px}
+  .cb-btns .btn{font-size:14px;padding:13px 18px;min-height:48px}
+  .final-box-t{font-size:14px}
+  .stand-tbl th{font-size:11px;padding:9px 7px}
+  .stand-tbl td{font-size:14px;padding:10px 7px}
+  .pts-val{font-size:18px}
+  .srow{padding:10px 12px;gap:10px}
+  .srank{font-size:15px;width:22px}
+  .sgoals{font-size:17px}
+  .rating-card{margin-bottom:10px}
+  .rc-hd{padding:11px 13px;gap:10px}
+  .rc-overall{font-size:20px}
+  .rc-expand{font-size:12px}
+  .rc-skills{padding:10px 13px}
+  .rc-skill{font-size:11px;width:96px}
+  .rc-stars{font-size:14px}
+  .rc-val{font-size:13px}
+  .agame-hd{padding:11px 13px}
+  .agame-hd b{font-size:14px}
+  .agame-body{padding:13px}
+  .score-adj{padding:8px 12px}
+  .score-adj-n{font-size:28px;width:36px}
+  .adj-btn{width:38px;height:38px;font-size:20px}
+  .admin-goal-row{font-size:13px;padding:7px 0}
+  .pen-title{font-size:14px}
+  .pen-sc{font-size:44px}
+  .pen-tn{font-size:13px}
+  .pen-kr{font-size:13px;padding:7px 10px}
+  .pen-ki{font-size:16px}
+  .pkb{font-size:13px;padding:7px 12px;min-height:40px}
+}
+@media(max-width:360px){
+  .gcols{grid-template-columns:1fr}
+  .sc-num{font-size:50px}
+  .sc-flag{font-size:34px}
+  .lin-teams{grid-template-columns:1fr}
+}
+
 @media(max-width:500px){.lin-teams{grid-template-columns:1fr}.gcols{grid-template-columns:1fr}.sc-num{font-size:42px}.sc-flag{font-size:30px}.scoreboard{padding:10px 12px}.fg2{grid-template-columns:1fr}.gs-grid{grid-template-columns:1fr 1fr}.pen-kicks{grid-template-columns:1fr}.add-goal-form{grid-template-columns:1fr 1fr}}
 </style>
 </head>
