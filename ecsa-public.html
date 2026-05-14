@@ -195,6 +195,8 @@ html{-webkit-text-size-adjust:100%}
 
 @media(max-width:460px){.lsc-score{font-size:46px}.lsc-flag{font-size:32px}.hero-title{font-size:24px}}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="hero">
@@ -228,11 +230,47 @@ html{-webkit-text-size-adjust:100%}
 <div id="view-U12" class="cat-view"></div>
 <div id="view-U14" class="cat-view"></div>
 
-<div class="footer">&#x26BD; ECSA &middot; Eagle Creek Soccer Academy &middot; World Cup Tryouts 2026<br>
-  <a href="ecsa-admin.html" style="margin-top:4px;display:inline-block">&#x1F512; Coach Login</a>
+<div style="text-align:center;padding:20px 16px 8px;max-width:840px;margin:0 auto">
+  <a href="ecsa-admin.html" style="display:inline-block;background:var(--green);color:#000;font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;text-decoration:none;padding:16px 36px;border-radius:12px;box-shadow:0 0 24px rgba(74,222,128,.35);width:100%;max-width:340px;text-align:center">&#x1F512; COACH LOGIN</a>
+  <div style="font-size:10px;color:var(--muted);margin-top:7px">Coaches &amp; Admin access</div>
 </div>
+<div class="footer">&#x26BD; ECSA &middot; Eagle Creek Soccer Academy &middot; World Cup Tryouts 2026</div>
 
 <script>
+
+/* ═══════════════════════════════════════════════════════
+   FIREBASE CONFIG — mesmas credenciais do admin
+   ═══════════════════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey:            "COLE_AQUI",
+  authDomain:        "COLE_AQUI",
+  databaseURL:       "COLE_AQUI",
+  projectId:         "COLE_AQUI",
+  storageBucket:     "COLE_AQUI",
+  messagingSenderId: "COLE_AQUI",
+  appId:             "COLE_AQUI"
+};
+
+function initFirebasePub(){
+  try{
+    if(FIREBASE_CONFIG.apiKey==='COLE_AQUI'){console.warn('Firebase não configurado');return;}
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.database().ref('ecsa2026').on('value',snap=>{
+      const d=snap.val();if(!d)return;
+      if(d.athletes)athletes=d.athletes||[];
+      if(d.gameStore)CATS.forEach(c=>{if(d.gameStore[c])gameStore[c]=d.gameStore[c];});
+      if(d.ts){
+        const sec=Math.floor((Date.now()-d.ts)/1000);
+        const el=document.getElementById('refreshLbl');
+        if(el)el.innerHTML='<b style="color:var(--green)">☁️ Firebase</b> &middot; '+(sec<5?'agora mesmo':sec+'s atrás');
+        // Sync para localStorage
+        try{localStorage.setItem('e2_ath',JSON.stringify(athletes));localStorage.setItem('e2_gs',JSON.stringify(gameStore));localStorage.setItem('e2_ts',String(d.ts));}catch(e){}
+      }
+      renderAll();
+    });
+  }catch(e){console.error('Firebase pub error:',e);}
+}
+
 const SCHEDULE=[
   {idx:0,label:'Game 1',ta:'USA',tb:'Spain',type:'group'},
   {idx:1,label:'Game 2',ta:'Brazil',tb:'Argentina',type:'group'},
@@ -498,6 +536,7 @@ function autoRefresh(){
 window.addEventListener('storage',e=>{if(['e2_gs','e2_ts'].includes(e.key))renderAll();});
 renderAll();
 setInterval(autoRefresh,2000);
+initFirebasePub();
 </script>
 </body>
 </html>
