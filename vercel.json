@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/",      "destination": "/ecsa-public.html" },
+    { "source": "/admin", "destination": "/ecsa-admin.html"  }
+  ]
+}
