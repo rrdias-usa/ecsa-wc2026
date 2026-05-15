@@ -72,7 +72,8 @@ textarea{resize:vertical;min-height:48px}
 .b-g{background:var(--green);color:#000}.b-g:hover{background:#22c55e}
 .b-o{background:var(--surf2);color:var(--text);border:1px solid var(--bdr)}.b-o:hover{background:var(--bdr)}
 .b-r{background:var(--red);color:#fff}.b-r:hover{background:#e11d48}
-.b-gold{background:var(--gold);color:#000}.b-gold:hover{background:#f59e0b}
+.b-gold{background:var(--gold);color:#000}
+.b-y{background:#f59e0b;color:#000}.b-gold:hover{background:#f59e0b}
 .b-blk{width:100%;padding:11px;font-size:13px;margin-top:4px}
 /* Camera removed */
 /* ATHLETE GRID */
@@ -532,127 +533,98 @@ input,select,textarea{font-size:16px!important}
 
 <script>
 /* ================================================================
-   ECSA WORLD CUP 2026 — COACH ADMIN  (clean build)
+   ECSA WORLD CUP 2026 — COACH ADMIN — clean build v3
    ================================================================ */
 
-/* ── FIREBASE CONFIG ──────────────────────────────────────────── */
-const FIREBASE_CONFIG = {
-  apiKey:            "COLE_AQUI",
-  authDomain:        "COLE_AQUI",
-  databaseURL:       "COLE_AQUI",
-  projectId:         "COLE_AQUI",
-  storageBucket:     "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId:             "COLE_AQUI"
-};
-let fbReady=false, fbRef=null;
+const FIREBASE_CONFIG={apiKey:"COLE_AQUI",authDomain:"COLE_AQUI",databaseURL:"COLE_AQUI",projectId:"COLE_AQUI",storageBucket:"COLE_AQUI",messagingSenderId:"COLE_AQUI",appId:"COLE_AQUI"};
+let fbReady=false,fbRef=null;
 function initFirebase(){
   try{
-    if(FIREBASE_CONFIG.apiKey==='COLE_AQUI') return;
+    if(FIREBASE_CONFIG.apiKey==='COLE_AQUI')return;
     firebase.initializeApp(FIREBASE_CONFIG);
-    fbRef = firebase.database().ref('ecsa2026');
-    fbReady = true;
+    fbRef=firebase.database().ref('ecsa2026');fbReady=true;
     fbRef.once('value').then(function(snap){
-      var d=snap.val(); if(!d) return;
-      if(d.athletes) athletes=d.athletes||[];
-      if(d.evals)    evals=d.evals||{};
-      if(d.gameStore) ['U8','U10','U12','U14'].forEach(function(c){ if(d.gameStore[c]) gameStore[c]=d.gameStore[c]; });
+      var d=snap.val();if(!d)return;
+      if(d.athletes)athletes=d.athletes||[];
+      if(d.evals)evals=d.evals||{};
+      if(d.gameStore)['U8','U10','U12','U14'].forEach(function(c){if(d.gameStore[c])gameStore[c]=d.gameStore[c];});
       sanitizeGameStore();
-      try{ localStorage.setItem('e2_ath',JSON.stringify(athletes)); localStorage.setItem('e2_ev',JSON.stringify(evals)); localStorage.setItem('e2_gs',JSON.stringify(gameStore)); }catch(e){}
-      render(); toast('\u2601\uFE0F Data loaded from cloud!');
+      try{localStorage.setItem('e2_ath',JSON.stringify(athletes));localStorage.setItem('e2_ev',JSON.stringify(evals));localStorage.setItem('e2_gs',JSON.stringify(gameStore));}catch(e){}
+      render();toast('\u2601\uFE0F Cloud data loaded!');
     });
     fbRef.on('value',function(snap){
-      var d=snap.val(); if(!d) return;
-      var remTs=d.ts||0, locTs=parseInt(localStorage.getItem('e2_ts')||'0');
+      var d=snap.val();if(!d)return;
+      var remTs=d.ts||0,locTs=parseInt(localStorage.getItem('e2_ts')||'0');
       if(remTs>locTs+2000){
-        if(d.athletes) athletes=d.athletes||[];
-        if(d.evals)    evals=d.evals||{};
-        if(d.gameStore) ['U8','U10','U12','U14'].forEach(function(c){ if(d.gameStore[c]) gameStore[c]=d.gameStore[c]; });
+        if(d.athletes)athletes=d.athletes||[];
+        if(d.evals)evals=d.evals||{};
+        if(d.gameStore)['U8','U10','U12','U14'].forEach(function(c){if(d.gameStore[c])gameStore[c]=d.gameStore[c];});
         sanitizeGameStore();
-        try{ localStorage.setItem('e2_ath',JSON.stringify(athletes)); localStorage.setItem('e2_ev',JSON.stringify(evals)); localStorage.setItem('e2_gs',JSON.stringify(gameStore)); localStorage.setItem('e2_ts',String(remTs)); }catch(e){}
-        if(curSec==='gm'){ renderGS(); if(curGameIdx!==null) renderCurrentGame(); }
-        if(curSec==='cl') renderStandings();
-        if(curSec==='ad') renderAdmin();
+        try{localStorage.setItem('e2_ath',JSON.stringify(athletes));localStorage.setItem('e2_ev',JSON.stringify(evals));localStorage.setItem('e2_gs',JSON.stringify(gameStore));localStorage.setItem('e2_ts',String(remTs));}catch(e){}
+        if(curSec==='gm'){renderGS();if(curGameIdx!==null)renderCurrentGame();}
+        if(curSec==='cl')renderStandings();
+        if(curSec==='ad')renderAdmin();
       }
     });
   }catch(e){}
 }
 function fbSave(){
-  if(!fbReady||!fbRef) return;
-  var athNP=athletes.map(function(a){ return {id:a.id,name:a.name,cat:a.cat,team:a.team,num:a.num}; });
-  fbRef.set({athletes:athNP, evals:evals, gameStore:gameStore, ts:Date.now()});
+  if(!fbReady||!fbRef)return;
+  var ath2=athletes.map(function(a){return {id:a.id,name:a.name,cat:a.cat,team:a.team,num:a.num};});
+  fbRef.set({athletes:ath2,evals:evals,gameStore:gameStore,ts:Date.now()});
 }
 
-/* ── CONSTANTS ────────────────────────────────────────────────── */
-const ADMIN_PASS  = 'ecsa2026';
-const COACH_PASS  = '12345';
-const SCHEDULE = [
-  {idx:0,label:'Game 1',      ta:'USA',       tb:'Spain',     type:'group'},
-  {idx:1,label:'Game 2',      ta:'Brazil',    tb:'Argentina', type:'group'},
-  {idx:2,label:'Game 3',      ta:'Argentina', tb:'USA',       type:'group'},
-  {idx:3,label:'Game 4',      ta:'Brazil',    tb:'Spain',     type:'group'},
-  {idx:4,label:'Game 5',      ta:'Spain',     tb:'Argentina', type:'group'},
-  {idx:5,label:'Game 6',      ta:'Brazil',    tb:'USA',       type:'group'},
-  {idx:6,label:'3rd Place',   ta:null,        tb:null,        type:'knockout'},
-  {idx:7,label:'Championship',ta:null,        tb:null,        type:'final'}
+const ADMIN_PASS='ecsa2026',COACH_PASS='12345';
+const SCHEDULE=[
+  {idx:0,label:'Game 1',ta:'USA',tb:'Spain',type:'group'},
+  {idx:1,label:'Game 2',ta:'Brazil',tb:'Argentina',type:'group'},
+  {idx:2,label:'Game 3',ta:'Argentina',tb:'USA',type:'group'},
+  {idx:3,label:'Game 4',ta:'Brazil',tb:'Spain',type:'group'},
+  {idx:4,label:'Game 5',ta:'Spain',tb:'Argentina',type:'group'},
+  {idx:5,label:'Game 6',ta:'Brazil',tb:'USA',type:'group'},
+  {idx:6,label:'3rd Place',ta:null,tb:null,type:'knockout'},
+  {idx:7,label:'Championship',ta:null,tb:null,type:'final'}
 ];
-const TEAMS = {
-  USA:      {flag:'\uD83C\uDDFA\uD83C\uDDF8', cls:'t-usa'},
-  Brazil:   {flag:'\uD83C\uDDE7\uD83C\uDDF7', cls:'t-bra'},
-  Argentina:{flag:'\uD83C\uDDE6\uD83C\uDDF7', cls:'t-arg'},
-  Spain:    {flag:'\uD83C\uDDEA\uD83C\uDDF8', cls:'t-esp'}
-};
-const SKILLS = ['Defense','Dribbling','Shooting','Speed','Positioning','Passing','Leadership','Heading','Finishing'];
-const SICONS = {Defense:'\uD83D\uDEE1\uFE0F',Dribbling:'\uD83D\uDCAB',Shooting:'\uD83E\uDDB5',Speed:'\u26A1',Positioning:'\uD83C\uDFAF',Passing:'\uD83D\uDD04',Leadership:'\uD83D\uDC51',Heading:'\uD83D\uDC46',Finishing:'\u26BD'};
+const TEAMS={USA:{flag:'\uD83C\uDDFA\uD83C\uDDF8',cls:'t-usa'},Brazil:{flag:'\uD83C\uDDE7\uD83C\uDDF7',cls:'t-bra'},Argentina:{flag:'\uD83C\uDDE6\uD83C\uDDF7',cls:'t-arg'},Spain:{flag:'\uD83C\uDDEA\uD83C\uDDF8',cls:'t-esp'}};
+const SKILLS=['Defense','Dribbling','Shooting','Speed','Positioning','Passing','Leadership','Heading','Finishing'];
+const SICONS={Defense:'\uD83D\uDEE1\uFE0F',Dribbling:'\uD83D\uDCAB',Shooting:'\uD83E\uDDB5',Speed:'\u26A1',Positioning:'\uD83C\uDFAF',Passing:'\uD83D\uDD04',Leadership:'\uD83D\uDC51',Heading:'\uD83D\uDC46',Finishing:'\u26BD'};
 
-/* ── STATE ────────────────────────────────────────────────────── */
-const CATS_T = {
-  U8: {phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},
-  U10:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},
-  U12:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},
-  U14:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null}
-};
-var T = CATS_T['U8'];
-var coach=null, sCat='U8', curSec='ci';
-var curGameIdx=null, openEval=null, openSkills=null;
+const CATS_T={U8:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},U10:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},U12:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null},U14:{phase:0,h1:0,h2:0,ts:0,iid:null,running:false,gameIdx:null}};
+var T=CATS_T['U8'];
+var coach=null,sCat='U8',curSec='ci',curGameIdx=null,openEval=null,openSkills=null;
 var ratingsSort={col:'overall',dir:-1};
-var athletes=[], evals={}, gameStore={};
-['U8','U10','U12','U14'].forEach(function(c){ gameStore[c]={}; });
-var gPoller=null, lastPollTs='';
-var _delPending=null;
+var athletes=[],evals={},gameStore={};
+['U8','U10','U12','U14'].forEach(function(c){gameStore[c]={};});
+var gPoller=null,lastPollTs='',_delPending=null,_addPending=null;
 
-/* ── SECTION VISIBILITY ───────────────────────────────────────── */
+/* ── SECTION VISIBILITY ── */
 function showSection(n){
   ['ci','ln','gm','cl','ev','ad'].forEach(function(id){
     var el=document.getElementById('s-'+id);
-    if(el) el.style.display=(id===n)?'block':'none';
+    if(el)el.style.display=(id===n)?'block':'none';
   });
   var rb=document.getElementById('reg-players-block');
-  if(rb) rb.style.display=(n==='ci')?'block':'none';
+  if(rb)rb.style.display=(n==='ci')?'block':'none';
 }
 
-/* ── LOGIN ────────────────────────────────────────────────────── */
+/* ── LOGIN ── */
 function checkAdminName(){
-  var name=document.getElementById('l-name').value.trim().toLowerCase();
-  document.getElementById('l-pass-row').style.display      = (name==='admin')?'block':'none';
-  document.getElementById('l-coach-pass-row').style.display= (name!==''&&name!=='admin')?'block':'none';
+  var nm=document.getElementById('l-name').value.trim().toLowerCase();
+  document.getElementById('l-pass-row').style.display=(nm==='admin')?'block':'none';
+  document.getElementById('l-coach-pass-row').style.display=(nm!==''&&nm!=='admin')?'block':'none';
 }
 function doLogin(){
   var name=document.getElementById('l-name').value.trim();
   var err=document.getElementById('l-err');
-  if(!name){ err.textContent='Please enter your name'; return; }
+  if(!name){err.textContent='Enter your name';return;}
   var isAdmin=(name.toLowerCase()==='admin');
-  if(isAdmin){
-    if(document.getElementById('l-pass').value!==ADMIN_PASS){ err.textContent='Wrong admin password'; return; }
-  }else{
-    if(document.getElementById('l-coach-pass').value!==COACH_PASS){ err.textContent='Wrong password'; return; }
-  }
-  coach={name:isAdmin?'Admin Master':name, isAdmin:isAdmin};
-  sessionStorage.setItem('ecsa_c',JSON.stringify(coach));
-  showApp();
+  if(isAdmin){if(document.getElementById('l-pass').value!==ADMIN_PASS){err.textContent='Wrong admin password';return;}}
+  else{if(document.getElementById('l-coach-pass').value!==COACH_PASS){err.textContent='Wrong password';return;}}
+  coach={name:isAdmin?'Admin Master':name,isAdmin:isAdmin};
+  sessionStorage.setItem('ecsa_c',JSON.stringify(coach));showApp();
 }
 function doLogout(){
-  sessionStorage.removeItem('ecsa_c'); coach=null;
+  sessionStorage.removeItem('ecsa_c');coach=null;
   document.getElementById('app').style.display='none';
   document.getElementById('lov').style.display='flex';
   document.getElementById('l-name').value='';
@@ -664,10 +636,7 @@ function doLogout(){
   document.getElementById('l-public-link').style.display='block';
 }
 function checkSession(){
-  try{
-    var s=JSON.parse(sessionStorage.getItem('ecsa_c')||'null');
-    if(s&&s.name){ coach=s; showApp(); }
-  }catch(e){}
+  try{var s=JSON.parse(sessionStorage.getItem('ecsa_c')||'null');if(s&&s.name){coach=s;showApp();}}catch(e){}
 }
 function showApp(){
   document.getElementById('lov').style.display='none';
@@ -675,258 +644,233 @@ function showApp(){
   document.getElementById('coachPill').textContent=coach.isAdmin?'':'\uD83D\uDC64 '+coach.name;
   document.getElementById('adminPill').style.display=coach.isAdmin?'inline-block':'none';
   document.getElementById('nb-admin').style.display=coach.isAdmin?'flex':'none';
-  showSection('ci');
-  loadAll(); initFirebase(); renderAthletes();
+  showSection('ci');loadAll();restoreTimers();initFirebase();renderAthletes();
 }
 
-/* ── PERSISTENCE ──────────────────────────────────────────────── */
+/* ── DATA ── */
 function saveAll(){
-  try{
-    localStorage.setItem('e2_ath',JSON.stringify(athletes));
-    localStorage.setItem('e2_ev', JSON.stringify(evals));
-    localStorage.setItem('e2_gs', JSON.stringify(gameStore));
-    localStorage.setItem('e2_ts', Date.now().toString());
-  }catch(e){}
+  try{localStorage.setItem('e2_ath',JSON.stringify(athletes));localStorage.setItem('e2_ev',JSON.stringify(evals));localStorage.setItem('e2_gs',JSON.stringify(gameStore));localStorage.setItem('e2_ts',Date.now().toString());}catch(e){}
   fbSave();
 }
 function loadAll(){
-  try{ athletes=JSON.parse(localStorage.getItem('e2_ath')||'[]'); }catch(e){}
-  try{ evals   =JSON.parse(localStorage.getItem('e2_ev') ||'{}'); }catch(e){}
-  try{
-    var gs=JSON.parse(localStorage.getItem('e2_gs')||'null');
-    if(gs) ['U8','U10','U12','U14'].forEach(function(c){ if(gs[c]) gameStore[c]=gs[c]; });
-  }catch(e){}
+  try{athletes=JSON.parse(localStorage.getItem('e2_ath')||'[]');}catch(e){}
+  try{evals=JSON.parse(localStorage.getItem('e2_ev')||'{}');}catch(e){}
+  try{var gs=JSON.parse(localStorage.getItem('e2_gs')||'null');if(gs)['U8','U10','U12','U14'].forEach(function(c){if(gs[c])gameStore[c]=gs[c];});}catch(e){}
   sanitizeGameStore();
 }
 function sanitizeGameStore(){
   ['U8','U10','U12','U14'].forEach(function(cat){
-    var cd=gameStore[cat]||{}; var found=false;
+    var cd=gameStore[cat]||{};var found=false;
     for(var i=0;i<8;i++){
-      if(!cd[i]) continue;
-      if(cd[i].status==='active'||cd[i].status==='ended'){
-        if(found){ if(cd[i].status==='active') cd[i].status='ended'; }
-        else found=true;
-      }
-      if(cd[i].timerPhase===4&&cd[i].status!=='ended'&&cd[i].status!=='finalized'){
-        cd[i].timerPhase=(cd[i].h2>0)?3:(cd[i].h1>0)?2:0;
-      }
+      if(!cd[i])continue;
+      if(cd[i].status==='active'||cd[i].status==='ended'){if(found){if(cd[i].status==='active')cd[i].status='ended';}else found=true;}
+      if(cd[i].timerPhase===4&&cd[i].status!=='ended'&&cd[i].status!=='finalized')cd[i].timerPhase=(cd[i].h2>0)?3:(cd[i].h1>0)?2:0;
     }
   });
 }
 
-/* ── NAV ──────────────────────────────────────────────────────── */
-function go(n, btn){
-  stopPoller();
-  curGameIdx=null; openEval=null; openSkills=null;
-  document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
-  btn.classList.add('on');
-  curSec=n;
-  showSection(n);
-  render();
+/* ── NAV ── */
+function go(n,btn){
+  stopPoller();curGameIdx=null;openEval=null;openSkills=null;
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');curSec=n;showSection(n);render();
 }
 function render(){
-  if(curSec==='ci') renderAthletes();
-  if(curSec==='ln') renderLineup();
-  if(curSec==='gm'){ renderGS(); renderCurrentGame(); }
-  if(curSec==='cl') renderStandings();
-  if(curSec==='ev') renderEvalPage();
-  if(curSec==='ad') renderAdmin();
+  if(curSec==='ci')renderAthletes();
+  if(curSec==='ln')renderLineup();
+  if(curSec==='gm'){renderGS();renderCurrentGame();}
+  if(curSec==='cl')renderStandings();
+  if(curSec==='ev')renderEvalPage();
+  if(curSec==='ad')renderAdmin();
 }
 function setCat(cat){
-  stopPoller();
-  saveTGS();
-  curGameIdx=null; openEval=null; openSkills=null;
-  sCat=cat; T=CATS_T[cat];
-  document.querySelectorAll('.cb').forEach(function(b){ b.classList.toggle('on', b.textContent===cat); });
+  stopPoller();saveTGS();curGameIdx=null;openEval=null;openSkills=null;
+  sCat=cat;T=CATS_T[cat];
+  document.querySelectorAll('.cb').forEach(function(b){b.classList.toggle('on',b.textContent===cat);});
   document.getElementById('catInfo').textContent=cat+' \u00B7 2\u00D7'+(cat==='U8'?12:13)+' min';
   render();
 }
 
-/* ── CHECK-IN ─────────────────────────────────────────────────── */
+/* ── CHECK-IN ── */
 function doCheckin(){
-  var name=document.getElementById('in-n').value.trim();
-  var team=document.getElementById('in-t').value;
-  var num =document.getElementById('in-num').value;
-  if(!name||!team||!num){ toast('Please fill in all fields!'); return; }
-  athletes.push({id:Date.now().toString(), name:name, cat:sCat, team:team, num:parseInt(num)});
-  saveAll();
-  document.getElementById('in-n').value='';
-  document.getElementById('in-num').value='';
-  document.getElementById('in-t').value='';
-  renderAthletes(); toast('\u2705 '+name+' \u00B7 '+sCat);
+  var name=document.getElementById('in-n').value.trim(),team=document.getElementById('in-t').value,num=document.getElementById('in-num').value;
+  if(!name||!team||!num){toast('Fill in all fields!');return;}
+  athletes.push({id:Date.now().toString(),name:name,cat:sCat,team:team,num:parseInt(num)});
+  saveAll();document.getElementById('in-n').value='';document.getElementById('in-num').value='';document.getElementById('in-t').value='';
+  renderAthletes();toast('\u2705 '+name+' \u00B7 '+sCat);
 }
 var ciF='all';
-function ciFilter(v, btn){
-  ciF=v;
-  document.querySelectorAll('#ciFbar .fb').forEach(function(b){ b.classList.remove('on'); });
-  btn.classList.add('on');
-  renderAthletes();
+function ciFilter(v,btn){
+  ciF=v;document.querySelectorAll('#ciFbar .fb').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');renderAthletes();
 }
 function renderAthletes(){
-  if(curSec!=='ci') return;
-  var list=(ciF==='all')?athletes:athletes.filter(function(a){ return a.cat===ciF; });
+  if(curSec!=='ci')return;
+  var list=(ciF==='all')?athletes:athletes.filter(function(a){return a.cat===ciF;});
   document.getElementById('athCnt').textContent=list.length+' player(s)';
   var g=document.getElementById('athGrid');
-  if(!list.length){ g.innerHTML='<div class="empty"><div class="ei">\uD83C\uDFC3</div>No players registered</div>'; return; }
+  if(!list.length){g.innerHTML='<div class="empty"><div class="ei">\uD83C\uDFC3</div>No players registered</div>';return;}
   g.innerHTML=list.map(function(a){
-    return '<div class="acard">'
+    var delBtn=coach&&coach.isAdmin?'<button class="adel" style="background:rgba(244,63,94,.15);border-color:var(--red);color:var(--red)" onclick="delAth(\''+a.id+'\')">&#x2715; Delete</button>':'';
+    var editBtn='<button class="adel" style="background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.5);color:var(--blue)" onclick="editAth(\''+a.id+'\')">\u270F Edit</button>';
+    return '<div class="acard" id="ac_'+a.id+'">'
       +'<div class="aphoto">'+(TEAMS[a.team]?TEAMS[a.team].flag:'\u26BD')+'</div>'
       +'<div class="ainfo"><span class="anum">'+a.num+'</span>'
       +'<div class="aname">'+a.name+'</div>'
       +'<div class="ameta">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' \u00B7 '+a.cat+'</div>'
-      +'<button class="adel" onclick="delAth(\''+a.id+'\')">&#x2715; Remove</button>'
+      +editBtn+delBtn
       +'</div></div>';
   }).join('');
 }
+function editAth(id){
+  var a=null;for(var i=0;i<athletes.length;i++){if(athletes[i].id===id){a=athletes[i];break;}}
+  if(!a)return;
+  var card=document.getElementById('ac_'+id);if(!card)return;
+  var info=card.querySelector('.ainfo');if(!info)return;
+  info.innerHTML='<input id="en_'+id+'" type="text" value="'+a.name+'" style="font-size:13px;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:5px 9px;color:var(--text);width:100%;box-sizing:border-box;margin-bottom:5px">'
+    +'<input id="enum_'+id+'" type="number" value="'+a.num+'" placeholder="#" style="font-size:13px;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:5px 9px;color:var(--text);width:80px;margin-bottom:5px">'
+    +'<div style="display:flex;gap:6px;margin-top:4px">'
+    +'<button class="btn b-g" onclick="saveAth(\''+id+'\')" style="padding:4px 12px;font-size:11px">\u2705 Save</button>'
+    +'<button class="btn" onclick="renderAthletes()" style="padding:4px 12px;font-size:11px">\u2715 Cancel</button>'
+    +'</div>';
+}
+function saveAth(id){
+  var nameEl=document.getElementById('en_'+id),numEl=document.getElementById('enum_'+id);
+  if(!nameEl||!numEl)return;
+  var newName=nameEl.value.trim(),newNum=parseInt(numEl.value);
+  if(!newName||isNaN(newNum)){toast('\u26A0\uFE0F Fill in name and number');return;}
+  loadAll();
+  for(var i=0;i<athletes.length;i++){if(athletes[i].id===id){athletes[i].name=newName;athletes[i].num=newNum;break;}}
+  saveAll();renderAthletes();toast('\u2705 '+newName+' updated');
+}
 function delAth(id){
-  athletes=athletes.filter(function(a){ return a.id!==id; });
-  saveAll(); renderAthletes(); toast('Player removed');
+  athletes=athletes.filter(function(a){return a.id!==id;});
+  saveAll();renderAthletes();toast('Player removed');
 }
 
-/* ── LINEUP ───────────────────────────────────────────────────── */
+/* ── LINEUP ── */
 function renderLineup(){
-  var cat=sCat;
-  var html='<div style="font-family:\'Oswald\',sans-serif;font-size:15px;font-weight:700;color:var(--gold);border-left:4px solid var(--gold);padding-left:9px;margin-bottom:9px">\u26BD '+cat+'</div><div class="lin-teams">';
+  var cat=sCat,H='<div style="font-family:\'Oswald\',sans-serif;font-size:15px;font-weight:700;color:var(--gold);border-left:4px solid var(--gold);padding-left:9px;margin-bottom:9px">\u26BD '+cat+'</div><div class="lin-teams">';
   Object.keys(TEAMS).forEach(function(team){
-    var ps=athletes.filter(function(a){ return a.cat===cat&&a.team===team; }).sort(function(a,b){ return a.num-b.num; });
-    html+='<div class="lin-team '+TEAMS[team].cls+'"><div class="lin-th"><span>'+TEAMS[team].flag+'</span>'+team+'<span style="margin-left:auto;font-size:8px;color:var(--muted);font-weight:400">'+ps.length+' pl.</span></div>';
-    if(ps.length){
-      ps.forEach(function(p){
-        html+='<div class="lin-pl"><div class="pn">'+p.num+'</div><div class="pth">'+TEAMS[p.team].flag+'</div><div class="pnm">'+p.name+'</div></div>';
-      });
-    }else html+='<div class="empty" style="padding:7px;font-size:10px">No players</div>';
-    html+='</div>';
+    var ps=athletes.filter(function(a){return a.cat===cat&&a.team===team;}).sort(function(a,b){return a.num-b.num;});
+    H+='<div class="lin-team '+TEAMS[team].cls+'"><div class="lin-th"><span>'+TEAMS[team].flag+'</span>'+team+'<span style="margin-left:auto;font-size:8px;color:var(--muted);font-weight:400">'+ps.length+' pl.</span></div>';
+    if(ps.length){ps.forEach(function(p){H+='<div class="lin-pl"><div class="pn">'+p.num+'</div><div class="pth">'+TEAMS[p.team].flag+'</div><div class="pnm">'+p.name+'</div></div>';});}
+    else H+='<div class="empty" style="padding:7px;font-size:10px">No players</div>';
+    H+='</div>';
   });
-  html+='</div>';
-  document.getElementById('lnBody').innerHTML=html;
+  document.getElementById('lnBody').innerHTML=H+'</div>';
 }
 
-/* ── GAME STORE ───────────────────────────────────────────────── */
+/* ── GAME STORE ── */
 function getGS(cat,idx){
-  if(!gameStore[cat]) gameStore[cat]={};
+  if(!gameStore[cat])gameStore[cat]={};
   if(!gameStore[cat][idx]){
     var s=SCHEDULE[idx];
     gameStore[cat][idx]={ta:s.ta,tb:s.tb,status:'upcoming',penaltyMode:false,penaltyWinner:null,timerPhase:0,h1:0,h2:0};
-    [s.ta,s.tb].forEach(function(t){ if(t&&!gameStore[cat][idx][t]) gameStore[cat][idx][t]={goals:[],penalties:[]}; });
+    [s.ta,s.tb].forEach(function(t){if(t&&!gameStore[cat][idx][t])gameStore[cat][idx][t]={goals:[],penalties:[]};});
   }
   return gameStore[cat][idx];
 }
-function ensureT(gs,ta,tb){
-  [ta,tb].forEach(function(t){ if(t&&!gs[t]) gs[t]={goals:[],penalties:[]}; });
-}
-function gScore(gs,ta,tb){
-  return {sA:(gs[ta]&&gs[ta].goals)?gs[ta].goals.length:0, sB:(gs[tb]&&gs[tb].goals)?gs[tb].goals.length:0};
-}
-function pScore(gs,ta,tb){
-  return {
-    pA:(gs[ta]&&gs[ta].penalties)?gs[ta].penalties.filter(function(p){ return p.scored; }).length:0,
-    pB:(gs[tb]&&gs[tb].penalties)?gs[tb].penalties.filter(function(p){ return p.scored; }).length:0
-  };
-}
-function getLiveIdx(cat){
-  var cd=gameStore[cat]||{};
-  for(var i=0;i<8;i++){ if(cd[i]&&(cd[i].status==='active'||cd[i].status==='ended')) return i; }
-  return null;
-}
-function isEditable(cat,idx){
-  var gs=gameStore[cat]&&gameStore[cat][idx];
-  return gs&&(gs.status==='active'||gs.status==='ended');
-}
+function ensureT(gs,ta,tb){[ta,tb].forEach(function(t){if(t&&!gs[t])gs[t]={goals:[],penalties:[]};});}
+function gScore(gs,ta,tb){return {sA:(gs[ta]&&gs[ta].goals)?gs[ta].goals.length:0,sB:(gs[tb]&&gs[tb].goals)?gs[tb].goals.length:0};}
+function pScore(gs,ta,tb){return {pA:(gs[ta]&&gs[ta].penalties)?gs[ta].penalties.filter(function(p){return p.scored;}).length:0,pB:(gs[tb]&&gs[tb].penalties)?gs[tb].penalties.filter(function(p){return p.scored;}).length:0};}
+function getLiveIdx(cat){var cd=gameStore[cat]||{};for(var i=0;i<8;i++){if(cd[i]&&(cd[i].status==='active'||cd[i].status==='ended'))return i;}return null;}
 function resolveKO(cat){
-  var st=sortedSt(cat); if(st.length<4) return;
-  var gs6=getGS(cat,6), gs7=getGS(cat,7);
-  if(!gs6.ta){ gs6.ta=st[2].team; gs6.tb=st[3].team; ensureT(gs6,gs6.ta,gs6.tb); }
-  if(!gs7.ta){ gs7.ta=st[0].team; gs7.tb=st[1].team; ensureT(gs7,gs7.ta,gs7.tb); }
+  var st=sortedSt(cat);if(st.length<4)return;
+  var gs6=getGS(cat,6),gs7=getGS(cat,7);
+  if(!gs6.ta){gs6.ta=st[2].team;gs6.tb=st[3].team;ensureT(gs6,gs6.ta,gs6.tb);}
+  if(!gs7.ta){gs7.ta=st[0].team;gs7.tb=st[1].team;ensureT(gs7,gs7.ta,gs7.tb);}
 }
 
-/* ── GAME SELECTOR ────────────────────────────────────────────── */
+/* ── GAME SELECTOR ── */
 function renderGS(){
-  var cat=sCat, cd=gameStore[cat]||{};
-  var done6=[0,1,2,3,4,5].filter(function(i){ return cd[i]&&cd[i].status==='finalized'; }).length===6;
-  if(done6) resolveKO(cat);
-  var html='';
+  var cat=sCat,cd=gameStore[cat]||{};
+  var done6=[0,1,2,3,4,5].filter(function(i){return cd[i]&&cd[i].status==='finalized';}).length===6;
+  if(done6)resolveKO(cat);
+  var H='';
   SCHEDULE.forEach(function(s){
-    var gs=cd[s.idx], ta=gs?gs.ta:s.ta, tb=gs?gs.tb:s.tb;
-    var status=gs?gs.status:'upcoming';
-    var isLive=status==='active', isEnd=status==='ended', isFin=status==='finalized';
-    var isCur=curGameIdx===s.idx;
+    var gs=cd[s.idx],ta=gs?gs.ta:s.ta,tb=gs?gs.tb:s.tb,status=gs?gs.status:'upcoming';
+    var isLive=status==='active',isEnd=status==='ended',isFin=status==='finalized',isCur=curGameIdx===s.idx;
     var cls='gs-card'+(isCur?' sel':'')+(isLive?' live':'')+(isEnd?' ended-s':'')+(isFin?' final':'')+(s.type!=='group'?' ko':'');
     var st='';
-    if(isFin){ var sc=gScore(gs,ta||'?',tb||'?'); st='<div class="gs-score">'+sc.sA+'-'+sc.sB+(gs.penaltyWinner?' <span style="font-size:7px;color:var(--gold)">(pen.)</span>':'')+'</div><span class="gs-status final">\u2705 FINAL</span>'; }
-    else if(isLive) st='<span class="gs-status live">\u25CF LIVE</span>';
-    else if(isEnd)  st='<span class="gs-status ended-s">\u23F8 CONFIRM</span>';
-    else if(s.type!=='group') st='<span class="gs-status ko-s">'+(s.type==='final'?'CHAMP.':'3RD PL.')+'</span>';
+    if(isFin){var sc=gScore(gs,ta||'?',tb||'?');st='<div class="gs-score">'+sc.sA+'-'+sc.sB+'</div><span class="gs-status final">\u2705 FINAL</span>';}
+    else if(isLive)st='<span class="gs-status live">\u25CF LIVE</span>';
+    else if(isEnd)st='<span class="gs-status ended-s">\u23F8 CONFIRM</span>';
+    else if(s.type!=='group')st='<span class="gs-status ko-s">'+(s.type==='final'?'CHAMP.':'3RD PL.')+'</span>';
     else st='<span class="gs-status next">UPCOMING</span>';
-    var taf=TEAMS[ta]?TEAMS[ta].flag:'\u2753', tbf=TEAMS[tb]?TEAMS[tb].flag:'\u2753';
-    html+='<div class="'+cls+'" onclick="openGame('+s.idx+')">'
+    var taf=TEAMS[ta]?TEAMS[ta].flag:'\u2753',tbf=TEAMS[tb]?TEAMS[tb].flag:'\u2753';
+    H+='<div class="'+cls+'" onclick="openGame('+s.idx+')">'
       +'<div class="gs-lbl">'+s.label+'</div>'
-      +'<div class="gs-teams"><span class="gs-flag">'+taf+'</span><span class="gs-name">'+(ta||'TBD')+'</span>'
-      +'<span class="gs-vs">vs</span>'
-      +'<span class="gs-flag">'+tbf+'</span><span class="gs-name">'+(tb||'TBD')+'</span></div>'
+      +'<div class="gs-teams"><span class="gs-flag">'+taf+'</span><span class="gs-name">'+(ta||'TBD')+'</span><span class="gs-vs">vs</span><span class="gs-flag">'+tbf+'</span><span class="gs-name">'+(tb||'TBD')+'</span></div>'
       +st+'</div>';
   });
-  document.getElementById('gsGrid').innerHTML=html;
+  document.getElementById('gsGrid').innerHTML=H;
 }
 
-/* ── OPEN / CLOSE GAME ────────────────────────────────────────── */
+/* ── OPEN/CLOSE GAME ── */
 function openGame(idx){
-  loadAll(); curGameIdx=idx;
-  var cat=sCat, gs=getGS(cat,idx);
-  if(idx>=6&&(!gs.ta||!gs.tb)) resolveKO(cat);
-  if(T.running&&T.gameIdx===idx){
-    // already tracking
-  }else{
-    var ph=gs.timerPhase||0;
-    if(ph===4&&gs.status!=='ended'&&gs.status!=='finalized'){
-      ph=(gs.h2>0)?3:(gs.h1>0)?2:0;
-    }
-    T.phase=ph; T.h1=gs.h1||0; T.h2=gs.h2||0; T.ts=0; T.running=false; T.gameIdx=idx;
-    if(T.iid){ clearInterval(T.iid); T.iid=null; }
+  loadAll();curGameIdx=idx;
+  var cat=sCat,gs=getGS(cat,idx);
+  if(idx>=6&&(!gs.ta||!gs.tb))resolveKO(cat);
+  // Restore phase and accumulated time from saved state
+  var ph=gs.timerPhase||0;
+  if(ph===4&&gs.status!=='ended'&&gs.status!=='finalized')ph=(gs.h2>0)?3:(gs.h1>0)?2:0;
+  T.phase=ph; T.h1=gs.h1||0; T.h2=gs.h2||0; T.gameIdx=idx;
+  // Kill any existing interval
+  if(T.iid){clearInterval(T.iid);T.iid=null;}
+  // If timer was running when saved, resume from original timestamp
+  // elapsed() = Date.now() - gs.timerTs  =>  correct real-world elapsed
+  if(gs.timerRunning && gs.timerTs>0 && gs.status==='active'){
+    T.ts=gs.timerTs;   // original start ts — keeps real elapsed intact
+    T.running=true;
+    var capCat=cat,gIdx=idx;
+    T.iid=setInterval(function(){
+      if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx)tickTimer();
+    },1000);
+    toast('▶ Timer resumed from '+tDisplay());
+  } else {
+    T.ts=0; T.running=false;
   }
-  renderGS(); renderCurrentGame(); startPoller();
+  renderGS();renderCurrentGame();startPoller();
 }
-function closeGame(){ curGameIdx=null; stopPoller(); openEval=null; openSkills=null; renderCurrentGame(); }
+function closeGame(){curGameIdx=null;stopPoller();openEval=null;openSkills=null;renderCurrentGame();}
 
-/* ── RENDER GAME ──────────────────────────────────────────────── */
+/* ── RENDER GAME ── */
 function renderCurrentGame(){
   var area=document.getElementById('gmArea');
-  if(curGameIdx===null){ area.innerHTML=''; return; }
-  var cat=sCat, gs=getGS(cat,curGameIdx), ta=gs.ta, tb=gs.tb;
-  if(!ta||!tb){ area.innerHTML='<div class="empty"><div class="ei">\u23F3</div>Teams not yet defined</div>'; return; }
+  if(curGameIdx===null){area.innerHTML='';return;}
+  var cat=sCat,gs=getGS(cat,curGameIdx),ta=gs.ta,tb=gs.tb;
+  if(!ta||!tb){area.innerHTML='<div class="empty"><div class="ei">\u23F3</div>Teams not yet defined</div>';return;}
   ensureT(gs,ta,tb);
-  var sc=gScore(gs,ta,tb), sA=sc.sA, sB=sc.sB;
-  var pc=pScore(gs,ta,tb), pA=pc.pA, pB=pc.pB;
-  var cc=tCC(cat), isKO=(curGameIdx>=6);
+  var sc=gScore(gs,ta,tb),sA=sc.sA,sB=sc.sB;
+  var pc=pScore(gs,ta,tb),pA=pc.pA,pB=pc.pB;
+  var cc=tCC(cat),isKO=(curGameIdx>=6);
   var liveIdx=getLiveIdx(cat);
-  var thisLive=isEditable(cat,curGameIdx);
+  var thisLive=(gs.status==='active'||gs.status==='ended');
   var noConflict=(liveIdx===null||liveIdx===curGameIdx);
   var editable=coach.isAdmin||(thisLive&&noConflict);
+  var canEdit=editable&&gs.status!=='finalized';
+  var canRate=true;
   var blockedByOther=!coach.isAdmin&&!noConflict&&!thisLive&&gs.status!=='finalized';
 
-  // Build player rows
   function pRows(team){
-    var list=athletes.filter(function(a){ return a.cat===cat&&a.team===team; }).sort(function(a,b){ return a.num-b.num; });
+    var list=athletes.filter(function(a){return a.cat===cat&&a.team===team;}).sort(function(a,b){return a.num-b.num;});
     var tGoals=(gs[team]&&gs[team].goals)||[];
-    var canEdit=editable&&gs.status!=='finalized';
-    if(!list.length) return '<div class="empty" style="padding:7px;font-size:10px">No players checked in</div>';
+    if(!list.length)return '<div class="empty" style="padding:7px;font-size:10px">No players checked in</div>';
     return list.map(function(a){
-      var gc=tGoals.filter(function(gl){ return gl.pid===a.id; }).length;
-      var ev=evals[a.id]||{};
-      var overall=ev.overall||0;
+      var gc=tGoals.filter(function(gl){return gl.pid===a.id;}).length;
+      var ev=evals[a.id]||{},overall=ev.overall||0;
       var oStr=overall>0?'\u2605'.repeat(overall)+'\u2606'.repeat(5-overall):'\u2606\u2606\u2606\u2606\u2606';
-      var isOpen=(openEval===a.id), isSkOpen=(openSkills===a.id);
-
+      var isOpen=(openEval===a.id),isSkOpen=(openSkills===a.id);
       var evalPanel='';
-      if(canEdit){
+      if(canRate){
+        var bigStars='';
+        for(var n=1;n<=5;n++)bigStars+='<span class="ep-star-big'+(overall>=n?' on':'')+'" onclick="setOverall('+n+',\''+a.id+'\')" style="cursor:pointer">\u2605</span>';
         var skillRows='';
         SKILLS.forEach(function(sk){
-          var v=ev[sk]||0;
-          var stars='';
-          for(var n=1;n<=5;n++) stars+='<span class="sk-star'+(v>=n?' on':'')+'" onclick="setSkillStar(\''+sk+'\','+n+',\''+a.id+'\')" data-pid="'+a.id+'" data-skill="'+sk+'" data-v="'+n+'">\u2605</span>';
+          var v=ev[sk]||0,stars='';
+          for(var n=1;n<=5;n++)stars+='<span class="sk-star'+(v>=n?' on':'')+'" onclick="setSkillStar(\''+sk+'\','+n+',\''+a.id+'\')" style="cursor:pointer">\u2605</span>';
           skillRows+='<div class="skill-row"><span class="skill-label">'+SICONS[sk]+' '+sk+'</span><div class="skill-stars">'+stars+'</div><span class="sk-val">'+(v>0?v:'')+'</span></div>';
         });
-        var bigStars='';
-        for(var n=1;n<=5;n++) bigStars+='<span class="ep-star-big'+(overall>=n?' on':'')+'" onclick="setOverall('+n+',\''+a.id+'\')" data-pid="'+a.id+'" data-v="'+n+'">\u2605</span>';
         evalPanel='<div class="epanel'+(isOpen?' on':'')+'" id="ep_'+a.id+'">'
           +'<div class="ep-body">'
           +'<div class="ep-hd">RATING \u00B7 '+a.name+'</div>'
@@ -939,14 +883,9 @@ function renderCurrentGame(){
           +'<button class="ep-save" onclick="saveEval(\''+a.id+'\')">\uD83D\uDCBE Save</button>'
           +'</div></div>';
       }
-
-      var goalsA=(gs[ta]&&gs[ta].goals||[]).map(function(gl,i){ return Object.assign({},gl,{_team:ta,_idx:i}); });
-      var goalsB=(gs[tb]&&gs[tb].goals||[]).map(function(gl,i){ return Object.assign({},gl,{_team:tb,_idx:i}); });
       var ballBtn=canEdit?'<button class="ballbtn" onclick="addGoal(\''+a.id+'\',\''+team+'\')">\u26BD</button>':'<span style="display:inline-block;width:21px"></span>';
-      var evBtn='<span class="ev-pill'+(isOpen?' on':'')+(overall>0?' rated':'')+'" onclick="'+(canEdit?'toggleEval(\''+a.id+'\')':'')+'">'+(canEdit?oStr:oStr)+'</span>';
-
-      return '<div>'
-        +'<div class="grow">'
+      var evBtn='<span class="ev-pill'+(isOpen?' on':'')+(overall>0?' rated':'')+'" onclick="toggleEval(\''+a.id+'\')">'+ oStr+'</span>';
+      return '<div><div class="grow">'
         +'<div class="gpi"><div class="pth">'+(TEAMS[a.team]?TEAMS[a.team].flag:a.team)+'</div>'
         +'<div><div class="gpname">'+a.name+'</div><div class="gpsub">#'+a.num+'</div></div></div>'
         +'<div class="gcnt">'+(gc||'')+'</div>'
@@ -955,56 +894,43 @@ function renderCurrentGame(){
     }).join('');
   }
 
-  // Goal log with delete buttons
-  var goalsA=(gs[ta]&&gs[ta].goals||[]).map(function(gl,i){ return Object.assign({},gl,{_team:ta,_idx:i}); });
-  var goalsB=(gs[tb]&&gs[tb].goals||[]).map(function(gl,i){ return Object.assign({},gl,{_team:tb,_idx:i}); });
+  var goalsA=(gs[ta]&&gs[ta].goals||[]).map(function(gl,i){return Object.assign({},gl,{_team:ta,_idx:i});});
+  var goalsB=(gs[tb]&&gs[tb].goals||[]).map(function(gl,i){return Object.assign({},gl,{_team:tb,_idx:i});});
   var allGoals=goalsA.concat(goalsB);
-  var canDelGoal=(editable&&gs.status!=='finalized')||coach.isAdmin;
   var goalLog='';
   if(allGoals.length){
     goalLog='<div class="glog"><div class="glog-hd">\u26BD Goals ('+allGoals.length+')</div>';
     allGoals.forEach(function(gl){
-      var delBtn=canDelGoal?'<button onclick="deleteGoal(\''+gl._team+'\','+gl._idx+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 5px;line-height:1" title="Remove" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--muted)\'">\u2715</button>':'';
+      var canDel=(canEdit)||(coach.isAdmin);
+      var delBtn=canDel?'<button onclick="deleteGoal(\''+gl._team+'\','+gl._idx+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 5px" title="Remove">\u2715</button>':'';
       goalLog+='<div class="glrow"><span>\u26BD</span><span>'+(TEAMS[gl._team]?TEAMS[gl._team].flag:'')+'</span><span style="font-weight:600;flex:1">'+gl.name+'</span><span class="bdg bdg-g">#'+gl.num+'</span>'+delBtn+'</div>';
     });
     goalLog+='</div>';
   }
 
-  // Status box
   var statusBox='';
   if(gs.status==='ended'){
-    statusBox='<div class="confirm-box">'
-      +'<div class="cb-title">\uD83C\uDFC1 Confirm Final Score</div>'
-      +'<div class="cb-score">'+(TEAMS[ta]?TEAMS[ta].flag:ta)+' '+ta+' &nbsp; '+sA+' &times; '+sB+' &nbsp; '+(TEAMS[tb]?TEAMS[tb].flag:tb)+' '+tb+'</div>'
+    statusBox='<div class="confirm-box"><div class="cb-title">\uD83C\uDFC1 Confirm Final Score</div>'
+      +'<div class="cb-score">'+(TEAMS[ta]?TEAMS[ta].flag:ta)+' '+ta+' &nbsp; '+sA+' \u00D7 '+sB+' &nbsp; '+(TEAMS[tb]?TEAMS[tb].flag:tb)+' '+tb+'</div>'
       +'<div class="cb-note">Confirm to lock. After locking, only Admin can make changes.</div>'
-      +'<div class="cb-btns">'
-      +'<button class="btn b-g" onclick="confirmFinalScore()" style="font-size:13px">\u2705 CONFIRM &amp; LOCK</button>'
-      +'<button class="btn b-r" onclick="restartGame()">\u21A9 RESTART GAME</button>'
-      +'</div></div>';
+      +'<div class="cb-btns"><button class="btn b-g" onclick="confirmFinalScore()" style="font-size:13px">\u2705 CONFIRM &amp; LOCK</button>'
+      +'<button class="btn b-r" onclick="restartGame()">\u21A9 RESTART GAME</button></div></div>';
   }else if(gs.status==='finalized'){
     statusBox='<div class="final-box"><div class="final-box-t">\u2705 Game Finalized &middot; Locked</div>'
-      +'<div style="font-size:10px;color:var(--muted)">Contact Admin Master to make changes</div></div>';
+      +'<div style="font-size:10px;color:var(--muted)">Contact Admin to make changes</div></div>';
   }
 
-  var blockMsg=blockedByOther?'<div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.3);border-radius:9px;padding:10px;margin-bottom:10px;text-align:center;font-size:12px;color:var(--red)">\u26A0\uFE0F '+SCHEDULE[liveIdx]?.label+' is LIVE. End it first.</div>':'';
-
-  var taf2=TEAMS[ta]?TEAMS[ta].flag:'', tbf2=TEAMS[tb]?TEAMS[tb].flag:'';
-  var statusBadge='';
-  if(gs.status==='active') statusBadge='<span class="bdg bdg-red">\u25CF LIVE</span>';
-  else if(gs.status==='ended') statusBadge='<span class="bdg" style="background:rgba(251,191,36,.1);color:var(--gold)">\u23F8 CONFIRM</span>';
-  else if(gs.status==='finalized') statusBadge='<span class="bdg bdg-g">\u2705 FINAL</span>';
-  var typeTag=(SCHEDULE[curGameIdx]&&SCHEDULE[curGameIdx].type==='final')?'<span class="bdg bdg-gold">CHAMPIONSHIP \uD83C\uDFC6</span>':
-              (SCHEDULE[curGameIdx]&&SCHEDULE[curGameIdx].type==='knockout')?'<span class="bdg bdg-gold">3RD PLACE</span>':'';
-
+  var taf2=TEAMS[ta]?TEAMS[ta].flag:'',tbf2=TEAMS[tb]?TEAMS[tb].flag:'';
   area.innerHTML='<div class="gws">'
     +'<div class="gws-hd"><span class="bdg bdg-g">'+cat+'</span>'
     +'<span style="font-family:\'Oswald\',sans-serif;font-size:13px;font-weight:700">'+(SCHEDULE[curGameIdx]?SCHEDULE[curGameIdx].label:'')+'</span>'
-    +typeTag+statusBadge
+    +(gs.status==='active'?'<span class="bdg bdg-red">\u25CF LIVE</span>':gs.status==='ended'?'<span class="bdg bdg-gold">\u23F8 CONFIRM</span>':gs.status==='finalized'?'<span class="bdg bdg-g">\u2705 FINAL</span>':'')
     +'<button class="gws-close" onclick="closeGame()">&#x2715;</button></div>'
     +'<div class="gws-body">'
-    +blockMsg+statusBox
+    +(blockedByOther?'<div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.3);border-radius:9px;padding:10px;margin-bottom:10px;text-align:center;font-size:12px;color:var(--red)">\u26A0\uFE0F Another game is LIVE</div>':'')
+    +statusBox
     +'<div class="tbox">'
-    +'<div class="tperiod" id="tperiod">'+(T.running?'<span class="t-dot"></span>':'')+tLabel()+'<span style="margin-left:auto;font-size:8px;color:var(--muted)">'+maxMin(cat)+' MIN / HALF &middot; Timer for reference only</span></div>'
+    +'<div class="tperiod" id="tperiod">'+(T.running?'<span class="t-dot"></span>':'')+tLabel()+'<span style="margin-left:auto;font-size:8px;color:var(--muted)">'+maxMin(cat)+' MIN / HALF</span></div>'
     +'<div class="t-disp'+cc+'" id="tdisp">'+tDisplay()+'</div>'
     +'<div class="t-bar"><div class="t-fill'+cc+'" id="tfill" style="width:'+tPct(cat)+'%"></div></div>'
     +'<div class="t-ctls" id="tctls">'+tCtrls(gs,isKO)+'</div>'
@@ -1014,502 +940,338 @@ function renderCurrentGame(){
     +'<div class="sc-x">&times;</div>'
     +'<div class="sc-team"><div class="sc-flag">'+tbf2+'</div><div class="sc-name">'+tb+'</div><div class="sc-num" id="scB">'+sB+'</div>'+(gs.penaltyWinner?'<div class="sc-pen-lbl">pen. '+pB+'</div>':'')+'</div>'
     +'</div>'
-    +(editable&&gs.status!=='finalized'?'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="color:var(--muted);font-size:10px">\u26BD = goal &middot; \u2606 = rate &middot; \u2715 = delete goal</span></div>':'')
     +'<div class="gcols">'
-    +'<div class="gcol '+(TEAMS[ta]?TEAMS[ta].cls:'')+'"><div class="gcol-hd">'+(TEAMS[ta]?TEAMS[ta].flag:'')+' '+ta+'</div>'+pRows(ta)+'</div>'
-    +'<div class="gcol '+(TEAMS[tb]?TEAMS[tb].cls:'')+'"><div class="gcol-hd">'+(TEAMS[tb]?TEAMS[tb].flag:'')+' '+tb+'</div>'+pRows(tb)+'</div>'
+    +'<div class="gcol '+(TEAMS[ta]?TEAMS[ta].cls:'')+'""><div class="gcol-hd">'+(TEAMS[ta]?TEAMS[ta].flag:'')+' '+ta+'</div>'+pRows(ta)+'</div>'
+    +'<div class="gcol '+(TEAMS[tb]?TEAMS[tb].cls:'')+'""><div class="gcol-hd">'+(TEAMS[tb]?TEAMS[tb].flag:'')+' '+tb+'</div>'+pRows(tb)+'</div>'
     +'</div>'
     +goalLog
     +'</div></div>';
-
-  if(T.running&&T.iid){
-    clearInterval(T.iid);
-    var capCat=cat, capIdx=curGameIdx;
-    T.iid=setInterval(function(){ if(capCat===sCat&&curGameIdx!==null&&curGameIdx===capIdx) tickTimer(); },1000);
-  }
 }
 
-/* ── TIMER ────────────────────────────────────────────────────── */
-function maxMin(cat){ return cat==='U8'?12:13; }
-function maxSec(cat){ return maxMin(cat)*60; }
-function elapsed(){ return T.ts?Math.floor((Date.now()-T.ts)/1000):0; }
-function halfSecs(){
-  if(T.phase===1) return T.h1+elapsed();
-  if(T.phase===3) return T.h2+elapsed();
-  if(T.phase===2) return T.h1;
-  return 0;
-}
-function tDisplay(){
-  var s=halfSecs(), m=Math.floor(s/60), ss=s%60;
-  return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
-}
-function tLabel(){ return ['WAITING','1st HALF','HALF TIME','2nd HALF','STOPPED'][T.phase]||'WAITING'; }
-function tPct(cat){ return Math.min(100,(halfSecs()/maxSec(cat))*100); }
-function tCC(cat){ var s=halfSecs(), m=maxSec(cat); return s>m?' over':s>m*.85?' warn':''; }
-
-function tCtrls(gs, isKO){
-  if(!gs) return '';
-  if(gs.status==='finalized'||gs.status==='ended') return '';
-  var cat=sCat, liveIdx=getLiveIdx(cat);
-  var noConflict=(liveIdx===null||liveIdx===curGameIdx);
-  if(!coach.isAdmin&&!noConflict)
-    return '<span style="color:var(--red);font-size:10px">\u26A0\uFE0F '+SCHEDULE[liveIdx].label+' is LIVE \u2014 end it first</span>';
-  if(T.phase===0) return '<button class="btn b-g" onclick="tStart1()">\u25B6 START 1st HALF</button>';
-  if(T.phase===1&&!T.running) return '<button class="btn b-g" onclick="resumeTimer()">\u25B6 RESUME 1st HALF</button><button class="btn b-o" onclick="tBreak()">\uD83D\uDD1A CALL HALF TIME</button>';
-  if(T.phase===1&&T.running)  return '<button class="btn b-o" onclick="tBreak()">\uD83D\uDD1A END 1st HALF</button>';
-  if(T.phase===2) return '<button class="btn b-g" onclick="tStart2()">\u25B6 START 2nd HALF</button>';
+/* ── TIMER ── */
+function maxMin(cat){return cat==='U8'?12:13;}
+function maxSec(cat){return maxMin(cat)*60;}
+function elapsed(){return T.ts?Math.floor((Date.now()-T.ts)/1000):0;}
+function halfSecs(){if(T.phase===1)return T.h1+elapsed();if(T.phase===3)return T.h2+elapsed();if(T.phase===2)return T.h1;return 0;}
+function tDisplay(){var s=halfSecs(),m=Math.floor(s/60),ss=s%60;return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function tLabel(){return ['WAITING','1st HALF','HALF TIME','2nd HALF','STOPPED'][T.phase]||'WAITING';}
+function tPct(cat){return Math.min(100,(halfSecs()/maxSec(cat))*100);}
+function tCC(cat){var s=halfSecs(),m=maxSec(cat);return s>m?' over':s>m*.85?' warn':'';}
+function tCtrls(gs,isKO){
+  if(!gs)return '';
+  if(gs.status==='finalized'||gs.status==='ended')return '';
+  var cat=sCat,liveIdx=getLiveIdx(cat),noConflict=(liveIdx===null||liveIdx===curGameIdx);
+  if(!coach.isAdmin&&!noConflict)return '<span style="color:var(--red);font-size:10px">\u26A0\uFE0F '+SCHEDULE[liveIdx].label+' is LIVE</span>';
+  if(T.phase===0)return '<button class="btn b-g" onclick="tStart1()">\u25B6 START 1st HALF</button>';
+  if(T.phase===1&&!T.running)return '<button class="btn b-g" onclick="resumeTimer()">\u25B6 RESUME 1st HALF</button><button class="btn b-o" onclick="tBreak()">\uD83D\uDD1A HALF TIME</button>';
+  if(T.phase===1&&T.running)return '<button class="btn" style="background:#f59e0b;color:#000;font-weight:700" onclick="tPause()">\u23F8 PAUSE</button> <button class="btn b-o" onclick="tBreak()">\uD83D\uDD1A END 1st HALF</button>';
+  if(T.phase===2)return '<button class="btn b-g" onclick="tStart2()">\u25B6 START 2nd HALF</button>';
   if(T.phase===3){
-    var g2=getGS(sCat,curGameIdx), s2=gScore(g2,g2.ta,g2.tb);
+    var g2=getGS(sCat,curGameIdx),s2=gScore(g2,g2.ta,g2.tb);
     var pb=(isKO&&s2.sA===s2.sB)?'<button class="btn b-gold" onclick="activatePen()">\u26A1 PENALTIES</button>':'';
-    if(!T.running) return '<button class="btn b-g" onclick="resumeTimer()">\u25B6 RESUME 2nd HALF</button>'+pb+'<button class="btn b-r" onclick="tEndGame()">\uD83C\uDFC1 END GAME</button>';
-    return pb+'<button class="btn b-r" onclick="tEndGame()">\uD83C\uDFC1 END GAME</button>';
+    if(!T.running)return '<button class="btn b-g" onclick="resumeTimer()">\u25B6 RESUME 2nd HALF</button>'+pb+'<button class="btn b-r" onclick="tEndGame()">\uD83C\uDFC1 END GAME</button>';
+    return '<button class="btn" style="background:#f59e0b;color:#000;font-weight:700" onclick="tPause()">\u23F8 PAUSE</button> '+pb+'<button class="btn b-r" onclick="tEndGame()">\uD83C\uDFC1 END GAME</button>';
   }
   return '<button class="btn b-g" onclick="resumeFrom4()">\u25B6 RESUME GAME</button><button class="btn b-r" onclick="tEndGame()">\uD83C\uDFC1 END GAME</button>';
 }
-
-function saveTGS(){
-  if(curGameIdx===null) return;
-  var gs=getGS(sCat,curGameIdx);
-  gs.timerPhase=T.phase; gs.h1=T.h1; gs.h2=T.h2; gs.timerTs=T.ts; gs.timerRunning=T.running;
-  saveAll();
-}
+function saveTGS(){if(curGameIdx===null)return;var gs=getGS(sCat,curGameIdx);gs.timerPhase=T.phase;gs.h1=T.h1;gs.h2=T.h2;gs.timerTs=T.ts;gs.timerRunning=T.running;saveAll();}
 function tStart1(){
-  loadAll();
-  var cat=sCat, liveIdx=getLiveIdx(cat);
-  if(liveIdx!==null&&liveIdx!==curGameIdx){ toast('\u26A0\uFE0F End '+SCHEDULE[liveIdx].label+' first!'); return; }
-  var gs=getGS(cat,curGameIdx);
-  if(gs.status==='finalized'){ toast('\u26A0\uFE0F Game is locked.'); return; }
-  if(gs.status==='upcoming') gs.status='active';
-  var gIdx=curGameIdx;
-  T.phase=1; T.h1=0; T.ts=Date.now(); T.running=true; T.gameIdx=gIdx;
-  if(T.iid) clearInterval(T.iid);
-  var capCat=cat;
-  T.iid=setInterval(function(){ if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx) tickTimer(); },1000);
-  tickTimer(); saveTGS(); toast('\u25B6 1st Half started!');
+  loadAll();var cat=sCat,liveIdx=getLiveIdx(cat);
+  if(liveIdx!==null&&liveIdx!==curGameIdx){toast('\u26A0\uFE0F End '+SCHEDULE[liveIdx].label+' first!');return;}
+  var gs=getGS(cat,curGameIdx);if(gs.status==='finalized'){toast('\u26A0\uFE0F Game is locked.');return;}
+  if(gs.status==='upcoming')gs.status='active';
+  var gIdx=curGameIdx;T.phase=1;T.h1=0;T.ts=Date.now();T.running=true;T.gameIdx=gIdx;
+  if(T.iid)clearInterval(T.iid);
+  var capCat=cat;T.iid=setInterval(function(){if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx)tickTimer();},1000);
+  tickTimer();saveTGS();toast('\u25B6 1st Half started!');
 }
-function tBreak(){
-  T.h1+=elapsed(); T.ts=0; T.running=false; T.phase=2;
-  if(T.iid){ clearInterval(T.iid); T.iid=null; }
-  tickTimer(); saveTGS();
-  toast('\uD83D\uDD1A Half Time \u00B7 '+String(Math.floor(T.h1/60)).padStart(2,'0')+':'+String(T.h1%60).padStart(2,'0'));
-}
+function tBreak(){T.h1+=elapsed();T.ts=0;T.running=false;T.phase=2;if(T.iid){clearInterval(T.iid);T.iid=null;}tickTimer();saveTGS();toast('\uD83D\uDD1A Half Time!');}
 function tStart2(){
-  var cat=sCat, gIdx=curGameIdx;
-  T.phase=3; T.h2=0; T.ts=Date.now(); T.running=true; T.gameIdx=gIdx;
-  if(T.iid) clearInterval(T.iid);
-  var capCat=cat;
-  T.iid=setInterval(function(){ if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx) tickTimer(); },1000);
-  tickTimer(); saveTGS(); toast('\u25B6 2nd Half started!');
+  var cat=sCat,gIdx=curGameIdx;T.phase=3;T.h2=0;T.ts=Date.now();T.running=true;T.gameIdx=gIdx;
+  if(T.iid)clearInterval(T.iid);
+  var capCat=cat;T.iid=setInterval(function(){if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx)tickTimer();},1000);
+  tickTimer();saveTGS();toast('\u25B6 2nd Half started!');
+}
+function tPause(){
+  if(!T.running)return;
+  if(T.phase===1)T.h1+=elapsed();else if(T.phase===3)T.h2+=elapsed();
+  T.ts=0;T.running=false;if(T.iid){clearInterval(T.iid);T.iid=null;}
+  saveTGS();tickTimer();toast('\u23F8 Timer paused — press Resume to continue');
 }
 function resumeTimer(){
-  var cat=sCat, gIdx=curGameIdx;
-  T.ts=Date.now(); T.running=true; T.gameIdx=gIdx;
-  if(T.iid) clearInterval(T.iid);
-  var capCat=cat;
-  T.iid=setInterval(function(){ if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx) tickTimer(); },1000);
-  saveTGS(); toast('\u25B6 Timer resumed!'); tickTimer();
+  var cat=sCat,gIdx=curGameIdx;T.ts=Date.now();T.running=true;T.gameIdx=gIdx;
+  if(T.iid)clearInterval(T.iid);
+  var capCat=cat;T.iid=setInterval(function(){if(capCat===sCat&&curGameIdx!==null&&curGameIdx===gIdx)tickTimer();},1000);
+  saveTGS();tickTimer();
 }
-function resumeFrom4(){
-  if(T.phase!==1&&T.phase!==2&&T.phase!==3){
-    T.phase=(T.h2>0)?3:(T.h1>0)?2:0;
-    if(T.phase===0){ tStart1(); return; }
-  }
-  if(T.phase===2){ tStart2(); return; }
-  resumeTimer();
-}
-function stopTimer(){
-  if(T.iid){ clearInterval(T.iid); T.iid=null; }
-  T.running=false;
-  if(T.ts){ if(T.phase===1) T.h1+=elapsed(); else if(T.phase===3) T.h2+=elapsed(); }
-  T.ts=0;
-}
+function resumeFrom4(){if(T.phase===2){tStart2();return;}if(T.phase===0){tStart1();return;}resumeTimer();}
+function stopTimer(){if(T.iid){clearInterval(T.iid);T.iid=null;}T.running=false;if(T.ts){if(T.phase===1)T.h1+=elapsed();else if(T.phase===3)T.h2+=elapsed();}T.ts=0;}
 function tEndGame(){
-  stopTimer();
-  var gs=getGS(sCat,curGameIdx);
-  gs.h1=T.h1; gs.h2=T.h2; gs.timerPhase=T.phase; gs.timerRunning=false; gs.timerTs=0;
-  gs.status='ended'; T.gameIdx=null;
-  saveAll(); renderCurrentGame(); renderGS();
-  toast('\uD83C\uDFC1 Game stopped \u2014 confirm score to lock');
+  stopTimer();var gs=getGS(sCat,curGameIdx);
+  gs.h1=T.h1;gs.h2=T.h2;gs.timerPhase=T.phase;gs.timerRunning=false;gs.timerTs=0;
+  gs.status='ended';T.gameIdx=null;saveAll();renderCurrentGame();renderGS();toast('\uD83C\uDFC1 Game ended — confirm to lock');
 }
 function confirmFinalScore(){
-  var gs=getGS(sCat,curGameIdx);
-  gs.status='finalized'; gs.timerRunning=false;
-  T.phase=0; T.h1=0; T.h2=0; T.ts=0; T.running=false; T.gameIdx=null;
-  if(T.iid){ clearInterval(T.iid); T.iid=null; }
-  var sc=gScore(gs,gs.ta,gs.tb);
-  saveAll(); openEval=null; openSkills=null;
-  renderGS(); renderCurrentGame();
-  toast('\u2705 LOCKED: '+gs.ta+' '+sc.sA+' \u00D7 '+sc.sB+' '+gs.tb);
+  var gs=getGS(sCat,curGameIdx);gs.status='finalized';gs.timerRunning=false;
+  T.phase=0;T.h1=0;T.h2=0;T.ts=0;T.running=false;T.gameIdx=null;if(T.iid){clearInterval(T.iid);T.iid=null;}
+  var sc=gScore(gs,gs.ta,gs.tb);saveAll();openEval=null;openSkills=null;
+  renderGS();renderCurrentGame();toast('\u2705 LOCKED: '+gs.ta+' '+sc.sA+' \u00D7 '+sc.sB+' '+gs.tb);
 }
 function restartGame(){
-  var gs=getGS(sCat,curGameIdx);
-  gs.status='active';
-  T.phase=gs.timerPhase||3; T.h1=gs.h1||0; T.h2=gs.h2||0; T.ts=0; T.running=false; T.gameIdx=curGameIdx;
-  saveAll(); renderCurrentGame(); renderGS();
-  toast('\u21A9 Restarted \u2014 press Resume to continue timer');
+  var gs=getGS(sCat,curGameIdx);gs.status='active';
+  T.phase=gs.timerPhase||3;T.h1=gs.h1||0;T.h2=gs.h2||0;T.ts=0;T.running=false;T.gameIdx=curGameIdx;
+  saveAll();renderCurrentGame();renderGS();toast('\u21A9 Restarted');
 }
 function tickTimer(){
-  var cat=sCat, cc=tCC(cat), isKO=(curGameIdx>=6);
+  var cat=sCat,cc=tCC(cat),isKO=(curGameIdx>=6);
   var gs=(curGameIdx!==null)?getGS(cat,curGameIdx):null;
-  var td=document.getElementById('tdisp'); if(!td) return;
-  td.className='t-disp'+cc; td.textContent=tDisplay();
-  var tp=document.getElementById('tperiod');
-  if(tp) tp.innerHTML=(T.running?'<span class="t-dot"></span>':'')+tLabel()+'<span style="margin-left:auto;font-size:8px;color:var(--muted)">'+maxMin(cat)+' MIN / HALF</span>';
-  var tf=document.getElementById('tfill');
-  if(tf){ tf.className='t-fill'+cc; tf.style.width=tPct(cat)+'%'; }
-  var tc=document.getElementById('tctls');
-  if(tc) tc.innerHTML=tCtrls(gs,isKO);
-  var s=halfSecs(), m=maxSec(cat);
-  if(s===m&&T.running){ if(T.phase===1) toast('\u23F0 Max 1st Half'); if(T.phase===3) toast('\u23F0 Max 2nd Half'); }
+  var td=document.getElementById('tdisp');if(!td)return;
+  td.className='t-disp'+cc;td.textContent=tDisplay();
+  var tp=document.getElementById('tperiod');if(tp)tp.innerHTML=(T.running?'<span class="t-dot"></span>':'')+tLabel()+'<span style="margin-left:auto;font-size:8px;color:var(--muted)">'+maxMin(cat)+' MIN / HALF</span>';
+  var tf=document.getElementById('tfill');if(tf){tf.className='t-fill'+cc;tf.style.width=tPct(cat)+'%';}
+  var tc=document.getElementById('tctls');if(tc)tc.innerHTML=tCtrls(gs,isKO);
 }
 
-/* ── GOALS ────────────────────────────────────────────────────── */
-function addGoal(pid, team){
-  loadAll();
-  var cat=sCat, gs=getGS(cat,curGameIdx);
-  ensureT(gs,gs.ta,gs.tb);
-  if(!gs[team]) gs[team]={goals:[],penalties:[]};
-  var a=null;
-  for(var i=0;i<athletes.length;i++){ if(athletes[i].id===pid){ a=athletes[i]; break; } }
-  if(!a) return;
-  gs[team].goals.push({pid:pid, name:a.name, num:a.num, team:team});
-  saveAll();
-  var elA=document.getElementById(team===gs.ta?'scA':'scB');
-  if(elA){ elA.classList.remove('gp'); void elA.offsetWidth; elA.classList.add('gp'); }
-  renderCurrentGame(); renderGS(); toast('\u26BD GOAL! '+a.name);
+/* ── GOALS ── */
+function addGoal(pid,team){
+  loadAll();var cat=sCat,gs=getGS(cat,curGameIdx);ensureT(gs,gs.ta,gs.tb);
+  if(!gs[team])gs[team]={goals:[],penalties:[]};
+  var a=null;for(var i=0;i<athletes.length;i++){if(athletes[i].id===pid){a=athletes[i];break;}}
+  if(!a)return;
+  gs[team].goals.push({pid:pid,name:a.name,num:a.num,team:team});
+  saveAll();renderCurrentGame();renderGS();toast('\u26BD GOAL! '+a.name);
 }
-function deleteGoal(team, idx){
-  loadAll();
-  var gs=getGS(sCat,curGameIdx);
-  if(gs.status==='finalized'&&!coach.isAdmin){
-    toast('\u26D4 Game locked. Only Admin can remove goals.'); return;
-  }
+function deleteGoal(team,idx){
+  loadAll();var gs=getGS(sCat,curGameIdx);
+  if(gs.status==='finalized'&&!coach.isAdmin){toast('\u26D4 Game locked. Only Admin can remove goals.');return;}
   var goal=gs[team]&&gs[team].goals&&gs[team].goals[idx];
-  if(gs[team]&&gs[team].goals) gs[team].goals.splice(idx,1);
-  saveAll(); renderCurrentGame(); renderGS();
-  toast('\u26AB Removed: '+(goal?goal.name+' #'+goal.num:'goal'));
+  if(gs[team]&&gs[team].goals)gs[team].goals.splice(idx,1);
+  saveAll();renderCurrentGame();renderGS();toast('\u26AB Removed: '+(goal?goal.name+' #'+goal.num:'goal'));
 }
 
-/* ── PENALTIES ────────────────────────────────────────────────── */
-function activatePen(){ var gs=getGS(sCat,curGameIdx); gs.penaltyMode=true; saveAll(); renderCurrentGame(); toast('\u26A1 Penalty shootout!'); }
-function addPen(team, scored){
-  loadAll();
-  var sel=document.getElementById('ps-'+team); if(!sel||!sel.value){ toast('Select kicker'); return; }
-  var parts=sel.value.split('|');
-  var gs=getGS(sCat,curGameIdx); ensureT(gs,gs.ta,gs.tb);
-  if(!gs[team].penalties) gs[team].penalties=[];
+/* ── PENALTIES ── */
+function activatePen(){var gs=getGS(sCat,curGameIdx);gs.penaltyMode=true;saveAll();renderCurrentGame();toast('\u26A1 Penalty shootout!');}
+function addPen(team,scored){
+  loadAll();var sel=document.getElementById('ps-'+team);if(!sel||!sel.value){toast('Select kicker');return;}
+  var parts=sel.value.split('|');var gs=getGS(sCat,curGameIdx);ensureT(gs,gs.ta,gs.tb);
+  if(!gs[team].penalties)gs[team].penalties=[];
   gs[team].penalties.push({pid:parts[0],name:parts[1],num:parseInt(parts[2]),scored:scored});
-  saveAll(); renderCurrentGame(); toast(scored?'\u2705 Goal!':'\u274C Missed!');
+  saveAll();renderCurrentGame();toast(scored?'\u2705 Goal!':'\u274C Missed!');
 }
-function removePen(team, idx){ loadAll(); var gs=getGS(sCat,curGameIdx); if(gs[team]&&gs[team].penalties) gs[team].penalties.splice(idx,1); saveAll(); renderCurrentGame(); }
+function removePen(team,idx){loadAll();var gs=getGS(sCat,curGameIdx);if(gs[team]&&gs[team].penalties)gs[team].penalties.splice(idx,1);saveAll();renderCurrentGame();}
 function setPenWinner(){
-  var gs=getGS(sCat,curGameIdx), pc=pScore(gs,gs.ta,gs.tb);
+  var gs=getGS(sCat,curGameIdx),pc=pScore(gs,gs.ta,gs.tb);
   var winner=(pc.pA>pc.pB)?gs.ta:(pc.pB>pc.pA)?gs.tb:null;
-  if(!winner){ var w=prompt('Tied! Enter winning team:'); if(w&&TEAMS[w]) winner=w; else{ toast('Invalid team'); return; } }
-  gs.penaltyWinner=winner; saveAll(); renderCurrentGame(); renderGS(); toast('\uD83C\uDFC6 '+winner+' wins!');
+  if(!winner){winner=prompt('Tied! Enter winning team:');if(!winner||!TEAMS[winner]){toast('Invalid');return;}}
+  gs.penaltyWinner=winner;saveAll();renderCurrentGame();renderGS();toast('\uD83C\uDFC6 '+winner+' wins!');
 }
 
-/* ── EVALUATION ───────────────────────────────────────────────── */
-function toggleEval(pid){ openEval=(openEval===pid)?null:pid; if(openEval!==pid) openSkills=null; renderCurrentGame(); }
-function toggleSkills(pid){ openSkills=(openSkills===pid)?null:pid; renderCurrentGame(); }
-function setOverall(v, pid){
-  loadAll(); var ev=evals[pid]||{}; ev.overall=v; evals[pid]=ev; saveAll();
-  document.querySelectorAll('[data-pid="'+pid+'"].ep-star-big').forEach(function(s){ s.classList.toggle('on',+s.dataset.v<=v); });
-  var vEl=document.getElementById('ovv_'+pid); if(vEl) vEl.textContent=v>0?v:'';
+/* ── EVALUATION (Game View) ── */
+function toggleEval(pid){openEval=(openEval===pid)?null:pid;if(openEval!==pid)openSkills=null;renderCurrentGame();}
+function toggleSkills(pid){openSkills=(openSkills===pid)?null:pid;renderCurrentGame();}
+function setOverall(v,pid){
+  loadAll();var ev=evals[pid]||{};ev.overall=v;evals[pid]=ev;saveAll();
+  document.querySelectorAll('[id^="ep_"] .ep-star-big').forEach(function(s){});
+  var el=document.getElementById('ovv_'+pid);if(el)el.textContent=v>0?v:'';
+  var ep=document.getElementById('ep_'+pid);
+  if(ep)ep.querySelectorAll('.ep-star-big').forEach(function(s,i){s.classList.toggle('on',(i+1)<=v);});
+  toast('\u2B50 '+v+' stars');
 }
-function setSkillStar(skill, v, pid){
-  loadAll(); var ev=evals[pid]||{}; ev[skill]=v; evals[pid]=ev; saveAll();
-  document.querySelectorAll('[data-pid="'+pid+'"][data-skill="'+skill+'"].sk-star').forEach(function(s){ s.classList.toggle('on',+s.dataset.v<=v); });
-  var panel=document.getElementById('ep_'+pid);
-  if(!panel) return;
-  panel.querySelectorAll('.skill-row').forEach(function(row){
-    var stars=row.querySelectorAll('.sk-star'); if(!stars.length) return;
-    if(stars[0].dataset.skill!==skill) return;
-    var vEl=row.querySelector('.sk-val'); if(vEl) vEl.textContent=v>0?v:'';
+function setSkillStar(skill,v,pid){
+  loadAll();var ev=evals[pid]||{};ev[skill]=v;evals[pid]=ev;saveAll();
+  var ep=document.getElementById('ep_'+pid);if(!ep)return;
+  ep.querySelectorAll('.skill-row').forEach(function(row){
+    var stars=row.querySelectorAll('.sk-star');if(!stars.length)return;
+    var oc=stars[0].getAttribute('onclick')||'';
+    if(oc.indexOf("'"+skill+"'")>=0||oc.indexOf('"'+skill+'"')>=0){
+      stars.forEach(function(s,i){s.classList.toggle('on',(i+1)<=v);});
+      var vEl=row.querySelector('.sk-val');if(vEl)vEl.textContent=v>0?v:'';
+    }
   });
+  toast(skill+': '+v+'\u2605');
 }
 function saveEval(pid){
-  loadAll(); var ev=evals[pid]||{};
-  var noteEl=document.getElementById('evnote_'+pid); if(noteEl) ev.notes=noteEl.value;
-  evals[pid]=ev; saveAll();
-  var a=null; for(var i=0;i<athletes.length;i++){ if(athletes[i].id===pid){ a=athletes[i]; break; } }
-  toast('\uD83D\uDCBE '+(a?a.name:'')+'  saved');
-}
-function saveEvalFromRatings(pid, noteId){
-  loadAll(); var ev=evals[pid]||{};
-  var noteEl=document.getElementById(noteId); if(noteEl) ev.notes=noteEl.value;
-  evals[pid]=ev; saveAll();
-  var a=null; for(var i=0;i<athletes.length;i++){ if(athletes[i].id===pid){ a=athletes[i]; break; } }
-  toast('\uD83D\uDCBE '+(a?a.name:'')+'  saved');
+  loadAll();var ev=evals[pid]||{};
+  var noteEl=document.getElementById('evnote_'+pid);if(noteEl)ev.notes=noteEl.value;
+  evals[pid]=ev;saveAll();
+  var a=null;for(var i=0;i<athletes.length;i++){if(athletes[i].id===pid){a=athletes[i];break;}}
+  toast('\uD83D\uDCBE '+(a?a.name:'')+' saved');
 }
 
-/* ── STANDINGS ────────────────────────────────────────────────── */
+/* ── STANDINGS ── */
 function computeSt(cat){
-  var st={}; Object.keys(TEAMS).forEach(function(t){ st[t]={team:t,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
+  var st={};Object.keys(TEAMS).forEach(function(t){st[t]={team:t,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
   for(var i=0;i<6;i++){
     var gs=gameStore[cat]&&gameStore[cat][i];
-    if(!gs||(gs.status!=='finalized'&&gs.status!=='ended')) continue;
-    var ta=gs.ta, tb=gs.tb; if(!st[ta]||!st[tb]) continue;
-    var sc=gScore(gs,ta,tb), sA=sc.sA, sB=sc.sB;
-    st[ta].gf+=sA; st[ta].ga+=sB; st[tb].gf+=sB; st[tb].ga+=sA;
-    if(sA>sB){     st[ta].w++; st[tb].l++; st[ta].pts+=3; }
-    else if(sA<sB){ st[tb].w++; st[ta].l++; st[tb].pts+=3; }
-    else{           st[ta].d++; st[tb].d++; st[ta].pts+=1; st[tb].pts+=1; }
+    if(!gs||(gs.status!=='finalized'&&gs.status!=='ended'))continue;
+    var ta=gs.ta,tb=gs.tb;if(!st[ta]||!st[tb])continue;
+    var sc=gScore(gs,ta,tb),sA=sc.sA,sB=sc.sB;
+    st[ta].gf+=sA;st[ta].ga+=sB;st[tb].gf+=sB;st[tb].ga+=sA;
+    if(sA>sB){st[ta].w++;st[tb].l++;st[ta].pts+=3;}
+    else if(sA<sB){st[tb].w++;st[ta].l++;st[tb].pts+=3;}
+    else{st[ta].d++;st[tb].d++;st[ta].pts++;st[tb].pts++;}
   }
   return st;
 }
 function sortedSt(cat){
   return Object.values(computeSt(cat)).sort(function(a,b){
-    if(b.pts!==a.pts) return b.pts-a.pts;
-    var dA=a.gf-a.ga, dB=b.gf-b.ga;
-    if(dB!==dA) return dB-dA;
-    if(b.gf!==a.gf) return b.gf-a.gf;
-    return a.team.localeCompare(b.team);
+    if(b.pts!==a.pts)return b.pts-a.pts;
+    var dA=a.gf-a.ga,dB=b.gf-b.ga;if(dB!==dA)return dB-dA;
+    if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);
   });
 }
 function renderStandings(){
-  loadAll();
-  var cat=sCat, sorted=sortedSt(cat);
+  loadAll();var cat=sCat,sorted=sortedSt(cat);
   var posE=['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49','4th'];
   var scmap={};
   for(var i=0;i<8;i++){
-    var gs=gameStore[cat]&&gameStore[cat][i]; if(!gs) continue;
+    var gs=gameStore[cat]&&gameStore[cat][i];if(!gs)continue;
     [gs.ta,gs.tb].forEach(function(t){
-      if(gs[t]&&gs[t].goals) gs[t].goals.forEach(function(g){
-        if(!g.name) return;
-        if(!scmap[g.pid]) scmap[g.pid]={name:g.name,num:g.num,team:g.team,total:0};
+      if(gs[t]&&gs[t].goals)gs[t].goals.forEach(function(g){
+        if(!g.name)return;
+        if(!scmap[g.pid])scmap[g.pid]={name:g.name,num:g.num,team:g.team,total:0};
         scmap[g.pid].total++;
       });
     });
   }
-  var scorers=Object.values(scmap).sort(function(a,b){ return b.total-a.total; }).slice(0,10);
-  var rkc=['r1','r2','r3'];
+  var scorers=Object.values(scmap).sort(function(a,b){return b.total-a.total;}).slice(0,10);
   var rows=sorted.map(function(s,i){
-    var gd=s.gf-s.ga, pj=s.w+s.d+s.l;
-    var gdStr=(gd>0?'+':'')+gd;
-    var gdCol=gd>0?'var(--green)':gd<0?'var(--red)':'var(--muted)';
+    var gd=s.gf-s.ga,pj=s.w+s.d+s.l,gdStr=(gd>0?'+':'')+gd,gdCol=gd>0?'var(--green)':gd<0?'var(--red)':'var(--muted)';
     return '<tr><td>'+(posE[i]||i+1)+'</td><td><b>'+(TEAMS[s.team]?TEAMS[s.team].flag:'')+' '+s.team+'</b></td>'
       +'<td>'+pj+'</td><td>'+s.w+'</td><td>'+s.d+'</td><td>'+s.l+'</td><td>'+s.gf+'</td><td>'+s.ga+'</td>'
       +'<td style="color:'+gdCol+'">'+gdStr+'</td><td class="pts-val">'+s.pts+'</td></tr>';
   }).join('');
   var scorerRows=scorers.map(function(s,i){
-    return '<div class="srow"><div class="srank '+(rkc[i]||'')+'">'+(i+1)+'</div>'
+    return '<div class="srow"><div class="srank '+(i<3?['r1','r2','r3'][i]:'')+'">'+( i+1)+'</div>'
       +'<div class="pth">'+(TEAMS[s.team]?TEAMS[s.team].flag:'')+'</div>'
-      +'<div style="flex:1;font-size:11px;font-weight:600">'+s.name+' <span style="color:var(--muted);font-size:8px">#'+s.num+'&middot;'+s.team+'</span></div>'
+      +'<div style="flex:1;font-size:11px;font-weight:600">'+s.name+' <span style="color:var(--muted);font-size:8px">#'+s.num+' \u00B7 '+s.team+'</span></div>'
       +'<div class="sgoals">'+s.total+'<small> goal'+(s.total>1?'s':'')+'</small></div></div>';
   }).join('');
-  document.getElementById('clBody').innerHTML=
-    '<div class="sec-sm" style="margin-top:0">\uD83D\uDCCA Standings &middot; '+cat+'</div>'
-    +'<table class="stand-tbl"><thead><tr><th>#</th><th>Team</th><th>GP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead>'
-    +'<tbody>'+rows+'</tbody></table>'
-    +'<div style="font-size:9px;color:var(--muted);margin-top:4px;margin-bottom:11px">Win=3pts &middot; Draw=1pt &middot; Loss=0pts &middot; Penalties only in 3rd Place &amp; Championship</div>'
-    +'<div class="divider"></div>'
-    +'<div class="sec-sm">&#x26BD; Top Scorers &middot; '+cat+'</div>'
+  document.getElementById('clBody').innerHTML='<div class="sec-sm" style="margin-top:0">\uD83D\uDCCA Standings \u00B7 '+cat+'</div>'
+    +'<table class="stand-tbl"><thead><tr><th>#</th><th>Team</th><th>GP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div style="font-size:9px;color:var(--muted);margin-top:4px;margin-bottom:11px">Win=3pts \u00B7 Draw=1pt each \u00B7 Penalties only in 3rd Place &amp; Championship</div>'
+    +'<div class="divider"></div><div class="sec-sm">\u26BD Top Scorers \u00B7 '+cat+'</div>'
     +(scorers.length?'<div class="scorers">'+scorerRows+'</div>':'<div class="empty"><div class="ei">\u26BD</div>No goals yet</div>');
 }
 
-/* ── RATINGS PAGE ─────────────────────────────────────────────── */
+/* ── RATINGS PAGE ── */
+var ratingsSort={col:'overall',dir:-1};
 function setRatingsSort(col){
-  if(ratingsSort.col===col) ratingsSort.dir*=-1;
-  else{ ratingsSort.col=col; ratingsSort.dir=(col==='name'?1:-1); }
+  if(ratingsSort.col===col)ratingsSort.dir*=-1;else{ratingsSort.col=col;ratingsSort.dir=(col==='name'?1:-1);}
   renderEvalPage();
 }
+// Global rating functions — defined at module level, always available
+window.rO=function(pid,val){
+  loadAll();if(!evals[pid])evals[pid]={};evals[pid].overall=val;saveAll();
+  for(var i=1;i<=5;i++){var el=document.getElementById('ro_'+pid+'_'+i);if(el)el.style.color=(i<=val)?'var(--gold)':'rgba(255,255,255,.18)';}
+  toast('\u2B50 '+val+' star'+(val>1?'s':''));
+};
+window.rS=function(pid,sk,val){
+  loadAll();if(!evals[pid])evals[pid]={};evals[pid][sk]=val;saveAll();
+  for(var i=1;i<=5;i++){var el=document.getElementById('rs_'+pid+'_'+sk+'_'+i);if(el)el.style.color=(i<=val)?'var(--gold)':'rgba(255,255,255,.18)';}
+  toast(sk+': '+val+'\u2605');
+};
+window.rN=function(pid){
+  loadAll();if(!evals[pid])evals[pid]={};
+  var el=document.getElementById('rn_'+pid);if(el)evals[pid].notes=el.value;
+  saveAll();toast('\uD83D\uDCBE Notes saved');
+};
+window.rT=function(pid){
+  var p=document.getElementById('rp_'+pid),b=document.getElementById('rb_'+pid);if(!p||!b)return;
+  var open=(p.style.display!=='block');p.style.display=open?'block':'none';
+  b.textContent=open?'\u25B2 Hide':'\u25BC Details';
+};
 function renderEvalPage(){
-  var cat=sCat;
-  var catAths=athletes.filter(function(a){ return a.cat===cat; });
-  var body=document.getElementById('evBody');
-  if(!catAths.length){ body.innerHTML='<div class="empty"><div class="ei">\u2B50</div>No players checked in for '+cat+'</div>'; return; }
-  var sorted=catAths.slice().sort(function(a,b){
-    if(ratingsSort.col==='name') return ratingsSort.dir*a.name.localeCompare(b.name);
-    var ao=(evals[a.id]&&evals[a.id].overall)||0, bo=(evals[b.id]&&evals[b.id].overall)||0;
+  var cat=sCat,body=document.getElementById('evBody');
+  var list=athletes.filter(function(a){return a.cat===cat;});
+  if(!list.length){body.innerHTML='<div class="empty"><div class="ei">\u2B50</div>No players in '+cat+'</div>';return;}
+  var sorted=list.slice().sort(function(a,b){
+    if(ratingsSort.col==='name')return ratingsSort.dir*a.name.localeCompare(b.name);
+    var ao=(evals[a.id]&&evals[a.id].overall)||0,bo=(evals[b.id]&&evals[b.id].overall)||0;
     return ratingsSort.dir*(ao-bo);
   });
-  var na=(ratingsSort.col==='name'), oa=(ratingsSort.col==='overall');
-  function arr(d){ return d===1?'\u25B2':'\u25BC'; }
-  var cards='';
+  var na=(ratingsSort.col==='name'),oa=(ratingsSort.col==='overall');
+  var H='<div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">';
+  H+='<span style="color:var(--muted);font-size:11px">'+sorted.length+' player(s) \u00B7 '+cat+'</span>';
+  H+='<span style="margin-left:auto;display:flex;gap:6px">';
+  H+='<button onclick="setRatingsSort(\'name\')" class="btn b-o" style="padding:5px 12px;font-size:11px'+(na?';color:var(--green)':'')+'">';
+  H+='NAME '+(na?(ratingsSort.dir===1?'\u25B2':'\u25BC'):'\u21C5')+'</button>';
+  H+='<button onclick="setRatingsSort(\'overall\')" class="btn b-o" style="padding:5px 12px;font-size:11px'+(oa?';color:var(--gold)':'')+'">';
+  H+='OVERALL '+(oa?(ratingsSort.dir===-1?'\u25BC':'\u25B2'):'\u21C5')+'</button>';
+  H+='</span></div>';
   sorted.forEach(function(a){
-    var ev=evals[a.id]||{};
-    var overall=ev.overall||0;
-    var sid='rcs_'+a.id;
-    // Overall stars — BIG, clickable
-    var bigStars='';
+    var ev=evals[a.id]||{},ov=ev.overall||0,pid=a.id;
+    H+='<div class="rating-card" style="margin-bottom:10px">';
+    H+='<div style="padding:12px 14px;display:flex;align-items:center;gap:10px">';
+    H+='<div class="pth">'+(TEAMS[a.team]?TEAMS[a.team].flag:a.team)+'</div>';
+    H+='<div style="flex:1"><b style="font-family:\'Oswald\',sans-serif;font-size:14px">'+a.name+'</b>';
+    H+='<div style="font-size:11px;color:var(--muted)">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' \u00B7 #'+a.num+'</div></div>';
+    H+='<div style="display:flex;gap:3px">';
+    // Stars: pid is numeric string — pass without quotes to avoid escaping
     for(var n=1;n<=5;n++){
-      bigStars+='<span class="ep-star-big'+(overall>=n?' on':'')+'"'
-        +' onclick="evSetOverall('+n+','+a.id+')"'
-        +' style="cursor:pointer;font-size:26px">\u2605</span>';
+      H+='<button type="button" id="ro_'+pid+'_'+n+'" onclick="rO('+pid+','+n+')"';
+      H+=' style="background:none;border:none;cursor:pointer;font-size:28px;padding:1px;line-height:1;';
+      H+='color:'+(n<=ov?'var(--gold)':'rgba(255,255,255,.18)')+'">&#9733;</button>';
     }
-    // Skill rows — clickable
-    var skRows='';
+    H+='</div>';
+    H+='<button type="button" id="rb_'+pid+'" onclick="rT('+pid+')"';
+    H+=' style="margin-left:8px;background:none;border:1px solid var(--bdr);border-radius:7px;color:var(--muted);cursor:pointer;font-size:11px;font-weight:700;padding:5px 10px;white-space:nowrap">';
+    H+='\u25BC Details</button></div>';
+    H+='<div id="rp_'+pid+'" style="display:none;padding:10px 14px 14px">';
     SKILLS.forEach(function(sk){
-      var v=ev[sk]||0;
-      var skStars='';
+      var sv=ev[sk]||0;
+      H+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">';
+      H+='<span style="width:95px;flex-shrink:0;font-size:11px;color:var(--muted)">'+SICONS[sk]+' '+sk+'</span>';
+      H+='<div style="display:flex;gap:3px">';
       for(var n=1;n<=5;n++){
-        skStars+='<span class="sk-star'+(v>=n?' on':'')+'"'
-          +' onclick="evSetSkill(\''+sk+'\','+n+','+a.id+')"'
-          +' style="cursor:pointer;font-size:16px">\u2605</span>';
+        // skill index lookup to avoid string-in-onclick
+        var si=SKILLS.indexOf(sk);
+        H+='<button type="button" id="rs_'+pid+'_'+sk+'_'+n+'" onclick="rS('+pid+',SKILLS['+si+'],'+n+')"';
+        H+=' style="background:none;border:none;cursor:pointer;font-size:18px;padding:0;line-height:1;';
+        H+='color:'+(n<=sv?'var(--gold)':'rgba(255,255,255,.18)')+'">&#9733;</button>';
       }
-      skRows+='<div class="rc-row"><span class="rc-skill">'+SICONS[sk]+' '+sk+'</span><div class="skill-stars">'+skStars+'</div><span class="rc-val">'+(v>0?v:'')+'</span></div>';
+      H+='</div></div>';
     });
-    var noteVal=(ev.notes||'').replace(/"/g,'&quot;');
-    cards+='<div class="rating-card" id="rc_'+a.id+'">'
-      +'<div class="rc-hd">'
-      +'<div class="pth">'+(TEAMS[a.team]?TEAMS[a.team].flag:a.team)+'</div>'
-      +'<div style="flex:1">'
-        +'<b style="font-family:\'Oswald\',sans-serif;font-size:13px">'+a.name+'</b>'
-        +'<div style="font-size:10px;color:var(--muted)">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' \u00B7 #'+a.num+'</div>'
-      +'</div>'
-      +'<div class="ep-stars-big" style="gap:2px">'+bigStars+'</div>'
-      +'<button class="rc-expand" style="margin-left:8px" onclick="'
-        +'var el=document.getElementById(\''+sid+'\');'
-        +'el.classList.toggle(\'on\');'
-        +'this.textContent=el.classList.contains(\'on\')?\'\u25B2 Hide\':\'\u25BC Details\';'
-      +'">\u25BC Details</button>'
-      +'</div>'
-      +'<div class="rc-skills" id="'+sid+'">'
-        +skRows
-        +'<div style="margin-top:8px">'
-          +'<textarea id="rcn_'+a.id+'" placeholder="Coach notes..." '
-            +'style="font-size:13px;min-height:40px;width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:7px 10px;color:var(--text);resize:vertical">'+noteVal+'</textarea>'
-          +'<button onclick="evSaveNotes('+a.id+')" class="ep-save" style="margin-top:5px">\uD83D\uDCBE Save Notes</button>'
-        +'</div>'
-      +'</div>'
-    +'</div>';
+    H+='<div style="margin-top:10px">';
+    H+='<textarea id="rn_'+pid+'" placeholder="Notes..." style="width:100%;font-size:13px;min-height:40px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;padding:8px 10px;color:var(--text);resize:vertical;box-sizing:border-box">';
+    H+=(ev.notes||'').replace(/</g,'&lt;')+'</textarea>';
+    H+='<button type="button" onclick="rN('+pid+')" style="margin-top:6px;padding:7px 16px;background:var(--green);color:#000;border:none;border-radius:7px;font-family:\'Oswald\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">';
+    H+='\uD83D\uDCBE Save Notes</button></div></div></div>';
   });
-  var nBtn=na?';background:var(--gdim);border-color:var(--green);color:var(--green)':'';
-  var oBtn=oa?';background:rgba(251,191,36,.1);border-color:var(--gold);color:var(--gold)':'';
-  body.innerHTML=
-    '<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">'
-    +'<span style="color:var(--muted);font-size:10px">'+sorted.length+' player(s) \u00B7 '+cat+'</span>'
-    +'<span style="margin-left:auto;display:flex;gap:6px">'
-    +'<button onclick="setRatingsSort(\'name\')" class="btn b-o" style="padding:3px 9px;font-size:9px'+nBtn+'">NAME '+(na?arr(ratingsSort.dir):'\u21C5')+'</button>'
-    +'<button onclick="setRatingsSort(\'overall\')" class="btn b-o" style="padding:3px 9px;font-size:9px'+oBtn+'">OVERALL '+(oa?arr(ratingsSort.dir):'\u21C5')+'</button>'
-    +'</span></div>'
-    +cards;
-}
-// Ratings page helper functions (no re-render flicker)
-function evSetOverall(v, pid){
-  loadAll(); var ev=evals[pid]||{}; ev.overall=v; evals[pid]=ev; saveAll();
-  // Update stars in DOM without full re-render
-  var card=document.getElementById('rc_'+pid); if(!card) return;
-  card.querySelectorAll('.ep-star-big').forEach(function(s,i){ s.classList.toggle('on',(i+1)<=v); });
-  toast('\u2B50 Rating saved: '+v+' star'+(v!==1?'s':''));
-}
-function evSetSkill(skill, v, pid){
-  loadAll(); var ev=evals[pid]||{}; ev[skill]=v; evals[pid]=ev; saveAll();
-  // Update stars in DOM without full re-render
-  var sid='rcs_'+pid; var panel=document.getElementById(sid); if(!panel) return;
-  panel.querySelectorAll('.rc-row').forEach(function(row){
-    var stars=row.querySelectorAll('.sk-star'); if(!stars.length) return;
-    // Find which skill row this is by checking onclick of first star
-    var oc=stars[0].getAttribute('onclick')||'';
-    if(oc.indexOf("'"+skill+"'")>=0){
-      stars.forEach(function(s,i){ s.classList.toggle('on',(i+1)<=v); });
-      var vEl=row.querySelector('.rc-val'); if(vEl) vEl.textContent=v>0?v:'';
-    }
-  });
-  toast(skill+': '+v+' star'+(v!==1?'s':''));
-}
-function evSaveNotes(pid){
-  loadAll(); var ev=evals[pid]||{};
-  var el=document.getElementById('rcn_'+pid); if(el) ev.notes=el.value;
-  evals[pid]=ev; saveAll();
-  var a=null; for(var i=0;i<athletes.length;i++){ if(athletes[i].id===pid){ a=athletes[i]; break; } }
-  toast('\uD83D\uDCBE Notes saved: '+(a?a.name:''));
+  body.innerHTML=H;
 }
 
-function setRatingsSort(col){
-  if(ratingsSort.col===col) ratingsSort.dir*=-1;
-  else{ ratingsSort.col=col; ratingsSort.dir=(col==='name'?1:-1); }
-  renderEvalPage();
-}
-function renderEvalPage(){
-  var cat=sCat;
-  var catAths=athletes.filter(function(a){ return a.cat===cat; });
-  // Show ALL players, not just rated ones
-  var rated=catAths; // all players
-  var body=document.getElementById('evBody');
-  if(!rated.length){ body.innerHTML='<div class="empty"><div class="ei">\u2B50</div>No players checked in for '+cat+'</div>'; return; }
-  var sorted=rated.slice().sort(function(a,b){
-    if(ratingsSort.col==='name') return ratingsSort.dir*a.name.localeCompare(b.name);
-    var ao=(evals[a.id]&&evals[a.id].overall)||0, bo=(evals[b.id]&&evals[b.id].overall)||0;
-    return ratingsSort.dir*(ao-bo);
-  });
-  var na=(ratingsSort.col==='name'), oa=(ratingsSort.col==='overall');
-  var arrow=function(d){ return d===1?'\u25B2':'\u25BC'; };
-  var cards=sorted.map(function(a){
-    var ev=evals[a.id]||{}, overall=ev.overall||0;
-    var oStr=overall>0?'\u2605'.repeat(overall)+'\u2606'.repeat(5-overall):'\u2606\u2606\u2606\u2606\u2606';
-    var sid='rcs_'+a.id;
-    var skRows=SKILLS.map(function(sk){ var v=ev[sk]||0; return '<div class="rc-row"><span class="rc-skill">'+SICONS[sk]+' '+sk+'</span><span class="rc-stars">'+(v>0?'\u2605'.repeat(v)+'\u2606'.repeat(5-v):'\u2606\u2606\u2606\u2606\u2606')+'</span><span class="rc-val">'+(v>0?v:'')+'</span></div>'; }).join('');
-    return '<div class="rating-card">'
-      +'<div class="rc-hd"><div class="pth">'+(TEAMS[a.team]?TEAMS[a.team].flag:a.team)+'</div>'
-      +'<div style="flex:1"><b style="font-family:\'Oswald\',sans-serif;font-size:13px">'+a.name+'</b>'
-      +'<div style="font-size:10px;color:var(--muted)">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' &middot; #'+a.num+'</div></div>'
-      +'<span class="rc-overall">'+oStr+'</span>'
-      +'<button class="rc-expand" onclick="var el=document.getElementById(\''+sid+'\');el.classList.toggle(\'on\');this.textContent=el.classList.contains(\'on\')?\'\u25B2 Hide\':\'\u25BC Details\';">\u25BC Details</button>'
-      +'</div><div class="rc-skills" id="'+sid+'">'+skRows+(ev.notes?'<div style="margin-top:6px;font-size:11px;color:var(--muted);border-top:1px solid var(--bdr);padding-top:5px">\uD83D\uDCDD '+ev.notes+'</div>':'')+'</div></div>';
-  }).join('');
-  var nBtn=na?';background:var(--gdim);border-color:var(--green);color:var(--green)':'';
-  var oBtn=oa?';background:rgba(251,191,36,.1);border-color:var(--gold);color:var(--gold)':'';
-  body.innerHTML='<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">'
-    +'<span style="color:var(--muted);font-size:10px">'+sorted.length+' player(s) &middot; '+cat+'</span>'
-    +'<span style="margin-left:auto;display:flex;gap:6px">'
-    +'<button onclick="setRatingsSort(\'name\')" class="btn b-o" style="padding:3px 9px;font-size:9px'+nBtn+'">NAME '+(na?arrow(ratingsSort.dir):'\u21C5')+'</button>'
-    +'<button onclick="setRatingsSort(\'overall\')" class="btn b-o" style="padding:3px 9px;font-size:9px'+oBtn+'">OVERALL '+(oa?arrow(ratingsSort.dir):'\u21C5')+'</button>'
-    +'</span></div>'+cards;
-}
-
-/* ── ADMIN PANEL ──────────────────────────────────────────────── */
+/* ── ADMIN PANEL ── */
 function renderAdmin(){
-  if(!coach||!coach.isAdmin){ document.getElementById('adminBody').innerHTML='<div class="empty">Admin access required</div>'; return; }
-  var cat=sCat, cd=gameStore[cat]||{};
-  var gameCards='';
+  if(!coach||!coach.isAdmin){document.getElementById('adminBody').innerHTML='<div class="empty">Admin access required</div>';return;}
+  var cat=sCat,cd=gameStore[cat]||{},H='';
   SCHEDULE.forEach(function(s){
-    var gs=cd[s.idx]; var ta=gs?gs.ta:s.ta, tb=gs?gs.tb:s.tb;
-    var status=gs?gs.status:'upcoming';
-    var isLive=(status==='active'), isEnd=(status==='ended'), isFin=(status==='finalized');
+    var gs=cd[s.idx],ta=gs?gs.ta:s.ta,tb=gs?gs.tb:s.tb,status=gs?gs.status:'upcoming';
+    var isLive=(status==='active'),isEnd=(status==='ended'),isFin=(status==='finalized');
     var sc=gs&&ta&&tb?gScore(gs,ta,tb):{sA:0,sB:0};
-    var agCls='agame'+(isLive?' live-ag':'')+(isEnd?' ended-ag':'')+(isFin?' final-ag':'');
+    var taf=TEAMS[ta]?TEAMS[ta].flag:'?',tbf=TEAMS[tb]?TEAMS[tb].flag:'?';
     var stBdg=isFin?'<span class="bdg bdg-g">\u2705 FINAL</span>':isLive?'<span class="bdg bdg-red">\u25CF LIVE</span>':isEnd?'<span class="bdg bdg-gold">\u23F8 CONFIRM</span>':'<span style="color:var(--muted);font-size:10px">Upcoming</span>';
-    var taf=TEAMS[ta]?TEAMS[ta].flag:'?', tbf=TEAMS[tb]?TEAMS[tb].flag:'?';
-
     var body='<div style="padding:8px 12px;color:var(--muted);font-size:10px">Not started</div>';
     if(gs&&ta&&tb){
-      // Goal rows
-      var goalsList='<div style="color:var(--muted);font-size:10px">No goals</div>';
-      var allAdminGoals=[];
-      if(gs[ta]&&gs[ta].goals) gs[ta].goals.forEach(function(g,i){ allAdminGoals.push(Object.assign({},g,{ti:ta,gi:i})); });
-      if(gs[tb]&&gs[tb].goals) gs[tb].goals.forEach(function(g,i){ allAdminGoals.push(Object.assign({},g,{ti:tb,gi:i})); });
-      if(allAdminGoals.length){
-        goalsList=allAdminGoals.map(function(g){
-          var taf2=TEAMS[g.team]?TEAMS[g.team].flag:'';
-          return '<div class="admin-goal-row"><span>\u26BD</span><span>'+taf2+'</span>'
-            +'<span style="flex:1;font-weight:600">'+g.name+' #'+g.num+'</span>'
-            +'<button class="btn b-r" onclick="adminDelGoal(\''+cat+'\','+s.idx+',\''+g.ti+'\','+g.gi+')" style="padding:2px 6px;font-size:9px">&#x2715;</button></div>';
-        }).join('');
-      }
-      // Athlete options for add-goal
+      var allGoals=[];
+      if(gs[ta]&&gs[ta].goals)gs[ta].goals.forEach(function(g,i){allGoals.push(Object.assign({},g,{ti:ta,gi:i}));});
+      if(gs[tb]&&gs[tb].goals)gs[tb].goals.forEach(function(g,i){allGoals.push(Object.assign({},g,{ti:tb,gi:i}));});
+      var goalsList=allGoals.length?allGoals.map(function(g){
+        return '<div class="admin-goal-row"><span>\u26BD</span><span>'+(TEAMS[g.team]?TEAMS[g.team].flag:'')+'</span>'
+          +'<span style="flex:1;font-weight:600">'+g.name+' #'+g.num+'</span>'
+          +'<button class="btn b-r" onclick="adminDelGoal(\''+cat+'\','+s.idx+',\''+g.ti+'\','+g.gi+')" style="padding:2px 6px;font-size:9px">\u2715</button></div>';
+      }).join(''):'<div style="color:var(--muted);font-size:10px;padding:3px 0">No goals</div>';
       var athOpts='<option value="">&#x26BD; Select athlete...</option>';
-      athletes.filter(function(a){ return a.cat===cat&&(a.team===ta||a.team===tb); })
-        .sort(function(a,b){ return a.team.localeCompare(b.team)||a.num-b.num; })
-        .forEach(function(a){ athOpts+='<option value="'+a.id+'|'+a.name+'|'+a.num+'|'+a.team+'">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' – #'+a.num+' '+a.name+'</option>'; });
-      // Penalty winner selector
-      var penSel='';
-      if(s.type!=='group'){
-        penSel='<div style="margin-bottom:8px"><label>Penalty Winner</label><select onchange="adminSetPenWinner(\''+cat+'\','+s.idx+',this.value)" style="margin-top:3px;font-size:12px">'
-          +'<option value="">None</option>'
-          +'<option value="'+ta+'" '+(gs.penaltyWinner===ta?'selected':'')+'>'+taf+' '+ta+'</option>'
-          +'<option value="'+tb+'" '+(gs.penaltyWinner===tb?'selected':'')+'>'+tbf+' '+tb+'</option>'
-          +'</select></div>';
-      }
-      // Action buttons
+      athletes.filter(function(a){return a.cat===cat&&(a.team===ta||a.team===tb);})
+        .sort(function(a,b){return a.team.localeCompare(b.team)||a.num-b.num;})
+        .forEach(function(a){athOpts+='<option value="'+a.id+'|'+a.name+'|'+a.num+'|'+a.team+'">'+(TEAMS[a.team]?TEAMS[a.team].flag:'')+' '+a.team+' \u2013 #'+a.num+' '+a.name+'</option>';});
+      var penSel=s.type!=='group'?'<div style="margin-bottom:8px"><label>Penalty Winner</label><select onchange="adminSetPenWinner(\''+cat+'\','+s.idx+',this.value)" style="margin-top:3px;font-size:12px"><option value="">None</option><option value="'+ta+'" '+(gs.penaltyWinner===ta?'selected':'')+'>'+taf+' '+ta+'</option><option value="'+tb+'" '+(gs.penaltyWinner===tb?'selected':'')+'>'+tbf+' '+tb+'</option></select></div>':'';
       var actBtns='';
-      if(!isFin&&!isLive&&!isEnd) actBtns+='<button class="btn b-g" onclick="adminForceStart(\''+cat+'\','+s.idx+')">\u25B6 Force Start</button>';
-      if(isLive||isEnd) actBtns+='<button class="btn b-r" onclick="adminForceEnd(\''+cat+'\','+s.idx+')">\uD83C\uDFC1 Force End &amp; Lock</button>';
-      if(isFin) actBtns+='<button class="btn b-o" onclick="adminReopen(\''+cat+'\','+s.idx+')">\uD83D\uDD13 Reopen</button>';
-      if(isEnd) actBtns+='<button class="btn b-g" onclick="adminFinalizeGame(\''+cat+'\','+s.idx+')">\u2705 Confirm &amp; Lock</button><button class="btn b-o" onclick="adminReopen(\''+cat+'\','+s.idx+')">\u21A9 Reopen</button>';
+      if(!isFin&&!isLive&&!isEnd)actBtns+='<button class="btn b-g" onclick="adminForceStart(\''+cat+'\','+s.idx+')">\u25B6 Force Start</button>';
+      if(isLive||isEnd)actBtns+='<button class="btn b-r" onclick="adminForceEnd(\''+cat+'\','+s.idx+')">\uD83C\uDFC1 Force End &amp; Lock</button>';
+      if(isFin)actBtns+='<button class="btn b-o" onclick="adminReopen(\''+cat+'\','+s.idx+')">\uD83D\uDD13 Reopen</button>';
+      if(isEnd)actBtns+='<button class="btn b-g" onclick="adminFinalizeGame(\''+cat+'\','+s.idx+')">\u2705 Confirm &amp; Lock</button><button class="btn b-o" onclick="adminReopen(\''+cat+'\','+s.idx+')">\u21A9 Reopen</button>';
       actBtns+='<button class="btn" onclick="adminResetGame(\''+cat+'\','+s.idx+')" style="background:#7c3aed;color:#fff">\uD83D\uDD04 Reset</button>';
-
       body='<div class="agame-body">'
         +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
         +'<span style="font-family:\'Oswald\',sans-serif;font-size:16px;font-weight:700;color:var(--green)">'+taf+' '+ta+'</span>'
@@ -1517,125 +1279,129 @@ function renderAdmin(){
         +'<span style="color:var(--muted);font-size:18px">&times;</span>'
         +'<span style="font-family:\'Oswald\',sans-serif;font-size:24px;font-weight:700;color:var(--green)">'+sc.sB+'</span>'
         +'<span style="font-family:\'Oswald\',sans-serif;font-size:16px;font-weight:700;color:var(--green)">'+tbf+' '+tb+'</span>'
-        +'</div>'
-        +penSel
+        +'</div>'+penSel
         +'<div style="margin-bottom:6px"><div style="font-size:9px;color:var(--muted);margin-bottom:4px">Goals:</div>'+goalsList+'</div>'
         +'<div style="font-size:9px;color:var(--gold);letter-spacing:1px;font-family:\'Oswald\',sans-serif;font-weight:700;margin-bottom:5px">ADD GOAL</div>'
         +'<div style="display:flex;gap:7px;align-items:flex-end">'
         +'<div class="fg" style="flex:1"><label>Select Athlete</label><select id="ag-player-'+s.idx+'" style="font-size:13px">'+athOpts+'</select></div>'
-        +'<button class="btn b-gold" onclick="adminAddGoal(\''+cat+'\','+s.idx+',\''+ta+'\',\''+tb+'\')" style="align-self:end;min-height:44px;padding:10px 16px">&#x2B9E; Add</button>'
+        +'<button class="btn b-gold" onclick="adminAddGoal(\''+cat+'\','+s.idx+',\''+ta+'\',\''+tb+'\')" style="align-self:end;min-height:44px;padding:10px 16px">\u2B9E Add</button>'
         +'</div>'
         +'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+actBtns+'</div>'
         +'</div>';
     }
-    gameCards+='<div class="'+agCls+'">'
+    H+='<div class="agame'+(isLive?' live-ag':'')+(isEnd?' ended-ag':'')+(isFin?' final-ag':'')+'">'
       +'<div class="agame-hd"><span class="bdg bdg-g" style="font-size:9px">'+s.label+'</span>'
       +'<b style="font-size:12px">'+taf+' '+(ta||'TBD')+' vs '+tbf+' '+(tb||'TBD')+'</b>'
       +(gs&&ta&&tb?'<span style="font-family:\'Oswald\',sans-serif;font-size:14px;font-weight:700;color:var(--green);margin-left:4px">'+sc.sA+'\u00D7'+sc.sB+'</span>':'')
       +stBdg+'</div>'+body+'</div>';
   });
-  document.getElementById('adminBody').innerHTML='<div style="color:var(--muted);font-size:10px;margin-bottom:10px">Category: <b style="color:var(--gold)">'+cat+'</b></div>'
-    +'<div class="admin-game-list">'+gameCards+'</div>';
+  document.getElementById('adminBody').innerHTML='<div style="color:var(--muted);font-size:10px;margin-bottom:10px">Category: <b style="color:var(--gold)">'+cat+'</b></div><div class="admin-game-list">'+H+'</div>';
 }
 
-/* ── ADMIN ACTIONS ────────────────────────────────────────────── */
-function adminAdj(cat,idx,team,delta){
-  loadAll(); var gs=getGS(cat,idx); ensureT(gs,gs.ta,gs.tb);
-  if(!gs[team]) gs[team]={goals:[],penalties:[]};
-  if(delta>0) gs[team].goals.push({pid:'admin',name:'(admin)',num:0,team:team});
-  else if(gs[team].goals.length>0) gs[team].goals.pop();
-  saveAll();
-  var el=document.getElementById('adj-'+cat+'-'+idx+'-'+team);
-  if(el) el.textContent=(gs[team].goals||[]).length;
-  toast('Score adjusted');
-}
+/* ── ADMIN ACTIONS ── */
 function adminDelGoal(cat,idx,team,goalIdx){
-  loadAll(); var gs=getGS(cat,idx);
-  var goal=gs[team]&&gs[team].goals&&gs[team].goals[goalIdx];
-  if(!goal){ toast('Goal not found'); return; }
+  loadAll();var gs=getGS(cat,idx);
+  var goal=gs[team]&&gs[team].goals&&gs[team].goals[goalIdx];if(!goal){toast('Goal not found');return;}
   var key=cat+'-'+idx+'-'+team+'-'+goalIdx;
   if(_delPending&&_delPending.key===key){
-    gs[team].goals.splice(goalIdx,1);
-    saveAll(); _delPending=null; renderAdmin();
-    if(curSec==='cl') renderStandings();
-    toast('\u26AB Removed: '+goal.name+' #'+goal.num+' ('+team+')');
+    gs[team].goals.splice(goalIdx,1);saveAll();_delPending=null;renderAdmin();
+    if(curSec==='cl')renderStandings();toast('\u26AB Removed: '+goal.name+' #'+goal.num+' ('+team+')');
   }else{
-    _delPending={key:key};
-    toast('\u26A0\uFE0F Click again to confirm: Remove '+goal.name+' #'+goal.num+' ('+team+')?');
-    setTimeout(function(){ _delPending=null; },4000);
+    _delPending={key:key};toast('\u26A0\uFE0F Click again: Remove '+goal.name+' #'+goal.num+'?');
+    setTimeout(function(){_delPending=null;},4000);
   }
 }
-var _addPending=null;
 function adminAddGoal(cat,idx,ta,tb){
-  var sel=document.getElementById('ag-player-'+idx);
-  if(!sel||!sel.value){ toast('\u26A0\uFE0F Select an athlete from the list'); return; }
-  var parts=sel.value.split('|');
-  var pid=parts[0], name=parts[1], num=parseInt(parts[2]), teamSel=parts[3]||ta;
-  if(!name){ toast('\u26A0\uFE0F Select an athlete from the list'); return; }
+  var sel=document.getElementById('ag-player-'+idx);if(!sel||!sel.value){toast('\u26A0\uFE0F Select athlete');return;}
+  var parts=sel.value.split('|'),pid=parts[0],name=parts[1],num=parseInt(parts[2]),teamSel=parts[3]||ta;
+  if(!name){toast('\u26A0\uFE0F Select athlete');return;}
   var key=cat+'-'+idx+'-'+pid;
   if(_addPending&&_addPending.key===key){
-    // Second click — confirm add
-    loadAll(); var gs=getGS(cat,idx);
-    ensureT(gs,gs.ta,gs.tb);
-    if(!gs[teamSel]) gs[teamSel]={goals:[],penalties:[]};
+    loadAll();var gs=getGS(cat,idx);ensureT(gs,gs.ta,gs.tb);
+    if(!gs[teamSel])gs[teamSel]={goals:[],penalties:[]};
     gs[teamSel].goals.push({pid:pid,name:name,num:num,team:teamSel});
-    saveAll(); _addPending=null; renderAdmin();
-    // Also refresh standings if we're on that section
-    if(curSec==='cl') renderStandings();
-    toast('\u26BD CONFIRMED: '+(TEAMS[teamSel]?TEAMS[teamSel].flag:'')+' '+name+' #'+num+' ('+teamSel+')');
+    saveAll();_addPending=null;renderAdmin();if(curSec==='cl')renderStandings();
+    toast('\u26BD CONFIRMED: '+(TEAMS[teamSel]?TEAMS[teamSel].flag:'')+' '+name+' #'+num);
   }else{
-    _addPending={key:key};
-    toast('\u26A0\uFE0F Click ADD again to confirm: '+name+' #'+num+' ('+teamSel+')');
-    setTimeout(function(){ _addPending=null; },4000);
+    _addPending={key:key};toast('\u26A0\uFE0F Click ADD again: '+name+' #'+num+' ('+teamSel+')?');
+    setTimeout(function(){_addPending=null;},4000);
   }
 }
-function adminSetPenWinner(cat,idx,winner){ loadAll(); var gs=getGS(cat,idx); gs.penaltyWinner=winner||null; if(winner&&!gs.penaltyMode) gs.penaltyMode=true; saveAll(); renderAdmin(); toast('Penalty winner set'); }
-function adminForceStart(cat,idx){
-  loadAll();
-  var liveIdx=getLiveIdx(cat);
-  if(liveIdx!==null&&liveIdx!==idx){ toast('\u26A0\uFE0F '+SCHEDULE[liveIdx].label+' already LIVE in '+cat); }
-  var gs=getGS(cat,idx); gs.status='active'; saveAll(); renderAdmin(); renderGS(); toast('\u25B6 Game started by admin');
-}
+function adminSetPenWinner(cat,idx,winner){loadAll();var gs=getGS(cat,idx);gs.penaltyWinner=winner||null;if(winner&&!gs.penaltyMode)gs.penaltyMode=true;saveAll();renderAdmin();toast('Penalty winner set');}
+function adminForceStart(cat,idx){loadAll();var gs=getGS(cat,idx);gs.status='active';saveAll();renderAdmin();renderGS();toast('\u25B6 Game started by admin');}
 function adminForceEnd(cat,idx){
-  loadAll(); var gs=getGS(cat,idx); gs.status='finalized'; gs.timerRunning=false;
-  var ct=CATS_T[cat];
-  if(ct.gameIdx===idx){ if(ct.iid){ clearInterval(ct.iid); ct.iid=null; } ct.phase=0; ct.h1=0; ct.h2=0; ct.ts=0; ct.running=false; ct.gameIdx=null; if(cat===sCat) T=CATS_T[cat]; }
-  saveAll(); renderAdmin(); renderGS();
-  if(cat===sCat&&curGameIdx===idx) renderCurrentGame();
-  toast('\u2705 Game locked by admin');
+  loadAll();var gs=getGS(cat,idx);gs.status='finalized';gs.timerRunning=false;
+  var ct=CATS_T[cat];if(ct.gameIdx===idx){if(ct.iid){clearInterval(ct.iid);ct.iid=null;}ct.phase=0;ct.h1=0;ct.h2=0;ct.ts=0;ct.running=false;ct.gameIdx=null;if(cat===sCat)T=CATS_T[cat];}
+  saveAll();renderAdmin();renderGS();if(cat===sCat&&curGameIdx===idx)renderCurrentGame();toast('\u2705 Game locked by admin');
 }
-function adminFinalizeGame(cat,idx){ loadAll(); var gs=getGS(cat,idx); gs.status='finalized'; gs.timerRunning=false; saveAll(); renderAdmin(); renderGS(); toast('\u2705 Game locked'); }
-function adminReopen(cat,idx){ loadAll(); var gs=getGS(cat,idx); gs.status='ended'; saveAll(); renderAdmin(); renderGS(); toast('\uD83D\uDD13 Reopened'); }
+function adminFinalizeGame(cat,idx){loadAll();var gs=getGS(cat,idx);gs.status='finalized';gs.timerRunning=false;saveAll();renderAdmin();renderGS();toast('\u2705 Game locked');}
+function adminReopen(cat,idx){loadAll();var gs=getGS(cat,idx);gs.status='ended';saveAll();renderAdmin();renderGS();toast('\uD83D\uDD13 Reopened');}
 function adminResetGame(cat,idx){
-  loadAll(); var s=SCHEDULE[idx];
+  loadAll();var s=SCHEDULE[idx];
   gameStore[cat][idx]={ta:s.ta||null,tb:s.tb||null,status:'upcoming',penaltyMode:false,penaltyWinner:null,timerPhase:0,h1:0,h2:0,timerRunning:false,timerTs:0};
-  if(s.ta) gameStore[cat][idx][s.ta]={goals:[],penalties:[]};
-  if(s.tb) gameStore[cat][idx][s.tb]={goals:[],penalties:[]};
-  if(idx>=6){ gameStore[cat][idx].ta=null; gameStore[cat][idx].tb=null; }
-  var ct=CATS_T[cat];
-  if(ct.gameIdx===idx){ if(ct.iid){ clearInterval(ct.iid); ct.iid=null; } ct.phase=0; ct.h1=0; ct.h2=0; ct.ts=0; ct.running=false; ct.gameIdx=null; if(cat===sCat) T=CATS_T[cat]; }
-  if(cat===sCat&&curGameIdx===idx){ curGameIdx=null; openEval=null; openSkills=null; }
-  saveAll(); renderAdmin(); renderGS(); renderCurrentGame();
-  toast('\uD83D\uDD04 '+SCHEDULE[idx].label+' fully reset');
+  if(s.ta)gameStore[cat][idx][s.ta]={goals:[],penalties:[]};if(s.tb)gameStore[cat][idx][s.tb]={goals:[],penalties:[]};
+  if(idx>=6){gameStore[cat][idx].ta=null;gameStore[cat][idx].tb=null;}
+  var ct=CATS_T[cat];if(ct.gameIdx===idx){if(ct.iid){clearInterval(ct.iid);ct.iid=null;}ct.phase=0;ct.h1=0;ct.h2=0;ct.ts=0;ct.running=false;ct.gameIdx=null;if(cat===sCat)T=CATS_T[cat];}
+  if(cat===sCat&&curGameIdx===idx){curGameIdx=null;openEval=null;openSkills=null;}
+  saveAll();renderAdmin();renderGS();renderCurrentGame();toast('\uD83D\uDD04 '+SCHEDULE[idx].label+' reset');
 }
 
-/* ── POLLING ──────────────────────────────────────────────────── */
+/* ── POLLING ── */
 function startPoller(){
-  stopPoller(); lastPollTs=localStorage.getItem('e2_ts')||'';
+  stopPoller();lastPollTs=localStorage.getItem('e2_ts')||'';
   gPoller=setInterval(function(){
-    if(curGameIdx===null||curSec!=='gm') return;
-    var ts=localStorage.getItem('e2_ts')||'';
-    if(ts!==lastPollTs){ lastPollTs=ts; loadAll(); renderGS(); renderCurrentGame(); }
+    if(curGameIdx===null||curSec!=='gm')return;
+    var ts=localStorage.getItem('e2_ts')||'';if(ts!==lastPollTs){lastPollTs=ts;loadAll();renderGS();renderCurrentGame();}
   },2500);
 }
-function stopPoller(){ if(gPoller){ clearInterval(gPoller); gPoller=null; } }
+function stopPoller(){if(gPoller){clearInterval(gPoller);gPoller=null;}}
 
-/* ── TOAST ────────────────────────────────────────────────────── */
+/* ── RESTORE TIMER STATE ON LOGIN ──
+   Called after loadAll(). Reconstructs CATS_T from saved gameStore.
+   If timer was running, resumes from exact moment it was when coach left.
+   elapsed() = Date.now() - ct.ts  →  setting ct.ts = gs.timerTs gives
+   correct total without needing periodic saves. */
+function restoreTimers(){
+  ['U8','U10','U12','U14'].forEach(function(cat){
+    var ct=CATS_T[cat];
+    // Clear any running interval first
+    if(ct.iid){clearInterval(ct.iid);ct.iid=null;}
+    var cd=gameStore[cat]||{};
+    // Find the active game for this category
+    var liveIdx=null;
+    for(var i=0;i<8;i++){if(cd[i]&&cd[i].status==='active'){liveIdx=i;break;}}
+    if(liveIdx===null) return; // No live game — leave timer at zero
+    var gs=cd[liveIdx];
+    // Restore accumulated time and phase
+    ct.phase=gs.timerPhase||0;
+    ct.h1=gs.h1||0;
+    ct.h2=gs.h2||0;
+    ct.gameIdx=liveIdx;
+    if(gs.timerRunning&&gs.timerTs>0){
+      // Timer was running when coach left.
+      // Keep original ts so elapsed() = Date.now() - timerTs gives
+      // the REAL time elapsed since the timer last started.
+      ct.ts=gs.timerTs;
+      ct.running=true;
+      // Restart display interval for this category
+      (function(capCat,capIdx){
+        ct.iid=setInterval(function(){
+          if(capCat===sCat&&curGameIdx!==null&&curGameIdx===capIdx) tickTimer();
+        },1000);
+      })(cat,liveIdx);
+    } else {
+      ct.ts=0; ct.running=false;
+    }
+  });
+  // Sync T reference to the current selected category
+  T=CATS_T[sCat];
+}
+
+/* ── TOAST ── */
 var toTm=null;
 function toast(msg){
-  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
-  if(toTm) clearTimeout(toTm);
-  toTm=setTimeout(function(){ t.classList.remove('on'); },2700);
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  if(toTm)clearTimeout(toTm);toTm=setTimeout(function(){t.classList.remove('on');},2700);
 }
 
 checkSession();
