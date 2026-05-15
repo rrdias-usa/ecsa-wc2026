@@ -194,6 +194,19 @@ html{-webkit-text-size-adjust:100%}
 }
 
 @media(max-width:460px){.lsc-score{font-size:46px}.lsc-flag{font-size:32px}.hero-title{font-size:24px}}
+
+/* ── LINEUP PUBLIC ── */
+.lu-section{margin-bottom:18px}
+.lu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(max-width:500px){.lu-grid{grid-template-columns:1fr}}
+.lu-team{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+.lu-team-hd{padding:8px 12px;background:var(--surf2);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;letter-spacing:.5px}
+.lu-count{margin-left:auto;font-size:10px;color:var(--muted);font-weight:400;font-family:inherit}
+.lu-list{padding:6px 10px;display:flex;flex-direction:column;gap:3px}
+.lu-player{display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.lu-player:last-child{border-bottom:none}
+.lu-num{width:24px;height:24px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0}
+.lu-name{font-size:12px;font-weight:500;color:var(--text)}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -400,6 +413,31 @@ function renderOverview(){
 function renderCat(cat){
   const cd=gameStore[cat]||{};const view=document.getElementById('view-'+cat);
   const s=[];
+
+  // ── LINEUP SECTION ──
+  const catAths=athletes.filter(a=>a.cat===cat);
+  if(catAths.length>0){
+    const teamOrder=['USA','Brazil','Argentina','Spain'];
+    let lineupRows='';
+    teamOrder.forEach(team=>{
+      const players=catAths.filter(a=>a.team===team).sort((a,b)=>a.num-b.num);
+      if(!players.length) return;
+      const playerList=players.map(p=>
+        `<div class="lu-player">
+          <span class="lu-num">${p.num}</span>
+          <span class="lu-name">${p.name}</span>
+        </div>`
+      ).join('');
+      lineupRows+=`<div class="lu-team">
+        <div class="lu-team-hd">${TEAMS[team]?.flag||''} <b>${team}</b> <span class="lu-count">${players.length} players</span></div>
+        <div class="lu-list">${playerList}</div>
+      </div>`;
+    });
+    s.push(`<div class="lu-section">
+      <div class="s-hd" style="margin-bottom:10px">&#x1F465; Lineup &middot; ${cat}</div>
+      <div class="lu-grid">${lineupRows}</div>
+    </div>`);
+  }
 
   // Find live/ended game
   const liveEntry=SCHEDULE.find(sc=>cd[sc.idx]&&cd[sc.idx].status==='active');
